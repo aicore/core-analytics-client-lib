@@ -1,8 +1,6 @@
-# template-nodejs
-A template project for nodejs. Has integrated linting, testing,
-coverage, reporting, GitGub actions for publishing to npm repository, dependency updates and other goodies.
-
-Easily use this template to quick start a production ready nodejs project template.
+# Core Analytics Client Lib - JS
+The Javascript client library to be used from browser/nodejs to raise analytics
+events for [Core-Analytics-Server](https://github.com/aicore/Core-Analytics-Server).
 
 ## Code Guardian
 [![<app> build verification](https://github.com/aicore/core-analytics-client-lib/actions/workflows/build_verify.yml/badge.svg)](https://github.com/aicore/core-analytics-client-lib/actions/workflows/build_verify.yml)
@@ -19,7 +17,7 @@ Easily use this template to quick start a production ready nodejs project templa
   <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_core-analytics-client-lib&metric=sqale_index" alt="Technical debt" />
 </a>
 
-# Commands available
+# Contribute to core-analytics-client-lib
 
 ## Building
 Since this is a pure JS template project, build command just runs test with coverage.
@@ -101,22 +99,7 @@ Unit and integration test coverage settings can be updated by configs `.nycrc.un
 See https://github.com/istanbuljs/nyc for config options.
 
 # Publishing packages to NPM
-To publish a package to npm, push contents to `npm` branch in 
-this repository. 
-
-## Publishing `@aicore/package*`
-If you are looking to publish to package owned by core.ai, you will need access to the GitHub Organization secret `NPM_TOKEN`.
-
-For repos managed by [aicore](https://github.com/aicore) org in GitHub, Please contact your Admin to get access to core.ai's NPM tokens.
-
-
-## Publishing to your own npm account
-Alternatively, if you want to publish the package to your own npm account, please follow these docs:
-1. Create an automation access token by following this [link](https://docs.npmjs.com/creating-and-viewing-access-tokens).
-2. Add NPM_TOKEN to your repository secret by following this [link](https://docs.npmjs.com/using-private-packages-in-a-ci-cd-workflow)
-
-To edit the publishing workflow, please see file: `.github/workflows/npm-publish.yml`
-
+To publish a package to npm, raise a pull request against `npm` branch.
 
 # Dependency updates
   We use Rennovate for dependency updates: https://blog.logrocket.com/renovate-dependency-updates-on-steroids/
