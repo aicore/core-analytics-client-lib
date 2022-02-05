@@ -1,17 +1,17 @@
 {
-  "name": "@aicore/template-nodejs",
-  "version": "1.0.1",
-  "description": "Template for nodejs with unit gulp build, test, coverage, code guardian, github and Other defaults",
-  "main": "index.js",
+  "name": "@aicore/core-analytics-client-lib",
+  "version": "1.0.0",
+  "description": "Analytics client library for https://github.com/aicore/Core-Analytics-Server",
+  "main": "src/index.js",
   "type": "module",
   "keywords": [
-    "template",
+    "analytics",
+    "library",
+    "core.ai",
     "nodejs",
-    "unit",
-    "testing",
-    "mocha",
-    "chai",
-    "coverage"
+    "aicore",
+    "Core-Analytics-Server",
+    "js"
   ],
   "scripts": {
     "eslint": "npm run lint",
