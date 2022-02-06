@@ -21,23 +21,23 @@
     "prepare": "husky install",
     "test": "npm run test:unit && npm run test:integ",
     "test:unit": "mocha test/unit/**/*.spec.js --timeout=3000",
-    "test:integ": "mocha test/integration/**/*.spec.js --timeout=3000",
+    "test:integ": "echo integration tests are disabled in this repo",
     "printReportsLink": "echo Detailed unit test coverage report: file:///$(pwd)/coverage-unit/index.html && echo Detailed integration test coverage report: file:///$(pwd)/coverage-integration/index.html",
     "cover": "npm run cover:unit && npm run cover:integ",
     "cover:unit": "c8 -c .nycrc.unit.json npm run test:unit && npm run --silent printReportsLink",
-    "cover:integ": "c8 -c .nycrc.integration.json npm run test:integ && npm run --silent printReportsLink",
+    "cover:integ": "echo integration tests are disabled in this repo",
     "build": "npm run cover"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aicore/template-nodejs.git"
+    "url": "git+https://github.com/aicore/core-analytics-client-lib.git"
   },
   "author": "Arun, core.ai",
   "license": "AGPL-3.0-or-later",
   "bugs": {
-    "url": "https://github.com/aicore/template-nodejs/issues"
+    "url": "https://github.com/aicore/core-analytics-client-lib/issues"
   },
-  "homepage": "https://github.com/aicore/template-nodejs#readme",
+  "homepage": "https://github.com/aicore/core-analytics-client-lib#readme",
   "devDependencies": {
     "@commitlint/cli": "16.1.0",
     "@commitlint/config-conventional": "16.0.0",
