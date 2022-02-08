@@ -111,8 +111,8 @@ function _setupTimers() {
         granularityTimer = null;
     }
     granularityTimer = setInterval(()=>{
-        currentQuantisedTime = currentQuantisedTime + DEFAULT_GRANULARITY_IN_SECONDS;
-    }, DEFAULT_GRANULARITY_IN_SECONDS*1000);
+        currentQuantisedTime = currentQuantisedTime + granularitySec;
+    }, granularitySec*1000);
 
     if(postTimer){
         clearInterval(postTimer);
@@ -155,8 +155,30 @@ function _ensureAnalyticsEventExists(eventType, category, subCategory) {
     };
 }
 
+function _validateEvent(eventType, category, subCategory, count) {
+    _validateCurrentState();
+    if(!eventType || !category || !subCategory){
+        throw new Error("missing eventType or category or subCategory");
+    }
+    if(typeof(count)!== 'number' || count <0){
+        throw new Error("invalid count");
+    }
+}
+
 function incrementEventCount(eventType, category, subCategory, count=1) {
+    _validateEvent(eventType, category, subCategory, count);
     _ensureAnalyticsEventExists(eventType, category, subCategory);
+    let events = currentAnalyticsEvent.events;
+    let timeArray = events[eventType][category][subCategory]["t"];
+    let lastTime = timeArray.length>0? timeArray[timeArray.length-1] : null;
+    if(lastTime !== currentQuantisedTime){
+        events[eventType][category][subCategory]["t"].push(currentQuantisedTime);
+        events[eventType][category][subCategory]["v"].push(0);
+        events[eventType][category][subCategory]["c"].push(0);
+    }
+    let modificationIndex = events[eventType][category][subCategory]["c"].length -1;
+    events[eventType][category][subCategory]["c"][modificationIndex] += count;
+    currentAnalyticsEvent.numEventsTotal += 1;
 }
 
 export {
