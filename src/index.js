@@ -154,7 +154,7 @@ function _ensureAnalyticsEventExists(eventType, category, subCategory) {
     };
 }
 
-function _validateEvent(eventType, category, subCategory, count) {
+function _validateEvent(eventType, category, subCategory, count, value) {
     _validateCurrentState();
     if(!eventType || !category || !subCategory){
         throw new Error("missing eventType or category or subCategory");
@@ -162,25 +162,52 @@ function _validateEvent(eventType, category, subCategory, count) {
     if(typeof(count)!== 'number' || count <0){
         throw new Error("invalid count");
     }
+    if(typeof(value)!== 'number'){
+        throw new Error("invalid value");
+    }
 }
 
-function incrementEventCount(eventType, category, subCategory, count=1) {
-    _validateEvent(eventType, category, subCategory, count);
+function _updateExistingAnalyticsEvent(index, eventType, category, subCategory, count, newValue) {
+    let events = currentAnalyticsEvent.events;
+    const storedValueIsCount = typeof(events[eventType][category][subCategory]["valueCount"][index]) === 'number';
+    if(storedValueIsCount && newValue === 0){
+        events[eventType][category][subCategory]["valueCount"][index] += count;
+    } else if(storedValueIsCount && newValue !== 0){
+        let newValueCount = {};
+        newValueCount[newValue] = count;
+        newValueCount[0] = events[eventType][category][subCategory]["valueCount"][index];
+        events[eventType][category][subCategory]["valueCount"][index] = newValueCount;
+    } else if(!storedValueIsCount){
+        let storedValueObject = events[eventType][category][subCategory]["valueCount"][index];
+        storedValueObject[newValue] = (storedValueObject[newValue] || 0) + count;
+    }
+    currentAnalyticsEvent.numEventsTotal += 1;
+}
+
+function analyticsEvent(eventType, category, subCategory, count=1, value=0) {
+    _validateEvent(eventType, category, subCategory, count, value);
     _ensureAnalyticsEventExists(eventType, category, subCategory);
     let events = currentAnalyticsEvent.events;
     let timeArray = events[eventType][category][subCategory]["time"];
     let lastTime = timeArray.length>0? timeArray[timeArray.length-1] : null;
     if(lastTime !== currentQuantisedTime){
         events[eventType][category][subCategory]["time"].push(currentQuantisedTime);
-        events[eventType][category][subCategory]["valueCount"].push(0);
+        if(value===0){
+            events[eventType][category][subCategory]["valueCount"].push(count);
+        } else {
+            let valueCount = {};
+            valueCount[value] = count;
+            events[eventType][category][subCategory]["valueCount"].push(valueCount);
+        }
+        currentAnalyticsEvent.numEventsTotal += 1;
+        return;
     }
     let modificationIndex = events[eventType][category][subCategory]["valueCount"].length -1;
-    events[eventType][category][subCategory]["valueCount"][modificationIndex] += count;
-    currentAnalyticsEvent.numEventsTotal += 1;
+    _updateExistingAnalyticsEvent(modificationIndex, eventType, category, subCategory, count, value);
 }
 
 export {
     initSession,
     getCurrentAnalyticsEvent,
-    incrementEventCount
+    analyticsEvent
 };
