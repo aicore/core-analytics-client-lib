@@ -67,16 +67,14 @@ describe('core-analytics-client-lib main tests', function () {
             "ev1": {
                 "cat1": {
                     "sub1": {
-                        "t": [0],
-                        "v": [0],
-                        "c": [1]
+                        "time": [0],
+                        "valueCount": [1]
                     }
                 },
                 "cat2": {
                     "sub1": {
-                        "t": [0, .2],
-                        "v": [0, 0],
-                        "c": [5, 2]
+                        "time": [0, 0.2],
+                        "valueCount": [5, 2]
                     }
                 }
             }

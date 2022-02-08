@@ -149,9 +149,8 @@ function _ensureAnalyticsEventExists(eventType, category, subCategory) {
     events[eventType] = events[eventType] || {};
     events[eventType][category] = events[eventType][category] || {};
     events[eventType][category][subCategory] = events[eventType][category][subCategory] || {
-        t: [], // quantised time
-        v: [], // value array, can be an array of arrays
-        c: []  // count array of numbers
+        time: [], // quantised time
+        valueCount: [] // value and count array, If a single value, then it is count, else object {"val1":count1, ...}
     };
 }
 
@@ -169,15 +168,14 @@ function incrementEventCount(eventType, category, subCategory, count=1) {
     _validateEvent(eventType, category, subCategory, count);
     _ensureAnalyticsEventExists(eventType, category, subCategory);
     let events = currentAnalyticsEvent.events;
-    let timeArray = events[eventType][category][subCategory]["t"];
+    let timeArray = events[eventType][category][subCategory]["time"];
     let lastTime = timeArray.length>0? timeArray[timeArray.length-1] : null;
     if(lastTime !== currentQuantisedTime){
-        events[eventType][category][subCategory]["t"].push(currentQuantisedTime);
-        events[eventType][category][subCategory]["v"].push(0);
-        events[eventType][category][subCategory]["c"].push(0);
+        events[eventType][category][subCategory]["time"].push(currentQuantisedTime);
+        events[eventType][category][subCategory]["valueCount"].push(0);
     }
-    let modificationIndex = events[eventType][category][subCategory]["c"].length -1;
-    events[eventType][category][subCategory]["c"][modificationIndex] += count;
+    let modificationIndex = events[eventType][category][subCategory]["valueCount"].length -1;
+    events[eventType][category][subCategory]["valueCount"][modificationIndex] += count;
     currentAnalyticsEvent.numEventsTotal += 1;
 }
 
