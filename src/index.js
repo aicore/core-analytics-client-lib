@@ -1,30 +1,20 @@
-/*
- * GNU AGPL-3.0 License
- *
- * Copyright (c) 2021 - present core.ai . All rights reserved.
- *
- * This program is free software: you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License along
- * with this program. If not, see https://opensource.org/licenses/AGPL-3.0.
- *
- */
+// GNU AGPL-3.0 License Copyright (c) 2021 - present core.ai . All rights reserved.
 
 // jshint ignore: start
 /*global localStorage, sessionStorage, crypto*/
 
 let accountID, appName, userID, sessionID, postIntervalSeconds, granularitySec;
 const DEFAULT_GRANULARITY_IN_SECONDS = 3;
+const DEFAULT_RETRY_TIME_IN_SECONDS = 30;
 const DEFAULT_POST_INTERVAL_SECONDS = 600; // 10 minutes
 const USERID_LOCAL_STORAGE_KEY = 'aicore.analytics.userID';
 let currentAnalyticsEvent = null;
 const IS_NODE_ENV = (typeof window === 'undefined');
+let POST_URL = "http://localhost:3000/ingest";
+
+let granularityTimer;
+let postTimer;
+let currentQuantisedTime = 0;
 
 if(IS_NODE_ENV){
     throw new Error("Node environment is not currently supported");
@@ -32,15 +22,15 @@ if(IS_NODE_ENV){
 
 function _createAnalyticsEvent() {
     return {
-        "schemaVersion": 1,
-        "accountID": accountID,
-        "appName": appName,
-        "uuid": userID,
-        "sessionID": sessionID,
-        "granularitySec": granularitySec,
-        "unixTimestampUTC": +new Date(),
-        "numEventsTotal": 0,
-        "events": {}
+        schemaVersion: 1,
+        accountID: accountID,
+        appName: appName,
+        uuid: userID,
+        sessionID: sessionID,
+        granularitySec: granularitySec,
+        unixTimestampUTC: +new Date(),
+        numEventsTotal: 0,
+        events: {}
     };
 }
 
@@ -79,6 +69,58 @@ function _setupIDs() {
     sessionID = _getOrCreateSessionID();
 }
 
+function _retryPost(eventToSend) {
+    eventToSend.backoffCount = (eventToSend.backoffCount || 0) + 1;
+    console.log(`Failed to call core analytics server. Will retry in ${
+        DEFAULT_RETRY_TIME_IN_SECONDS * eventToSend.backoffCount}s: `);
+    setTimeout(()=>{
+        _postCurrentAnalyticsEvent(eventToSend);
+    }, DEFAULT_RETRY_TIME_IN_SECONDS * 1000 * eventToSend.backoffCount);
+}
+
+function _postCurrentAnalyticsEvent(eventToSend) {
+    if(!eventToSend){
+        eventToSend = currentAnalyticsEvent;
+        currentAnalyticsEvent = _createAnalyticsEvent();
+    }
+    if(eventToSend.numEventsTotal === 0 ){
+        return;
+    }
+    window.fetch(POST_URL, {
+        method: "POST",
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(eventToSend)
+    }).then(res=>{
+        if(res.status === 200){
+            return;
+        }
+        if(res.status !== 400){ // we don't retry bad requests
+            _retryPost(eventToSend);
+        } else {
+            console.error("Bad Request, this is most likely a problem with the library, update to latest version.");
+        }
+    }).catch(res => {
+        console.error(res);
+        _retryPost(eventToSend);
+    });
+}
+
+function _setupTimers() {
+    if(granularityTimer){
+        clearInterval(granularityTimer);
+        granularityTimer = null;
+    }
+    granularityTimer = setInterval(()=>{
+        currentQuantisedTime = currentQuantisedTime + DEFAULT_GRANULARITY_IN_SECONDS;
+    }, DEFAULT_GRANULARITY_IN_SECONDS*1000);
+
+    if(postTimer){
+        clearInterval(postTimer);
+        postTimer = null;
+    }
+    postTimer = setInterval(_postCurrentAnalyticsEvent, postIntervalSeconds*1000);
+}
+
 /**
  * Initialize the analytics session
  * @param accountIDInit Your analytics account id as configured in the server or core.ai analytics
@@ -99,9 +141,26 @@ function initSession(accountIDInit, appNameInit, postIntervalSecondsInit, granul
     granularitySec = granularitySecInit || DEFAULT_GRANULARITY_IN_SECONDS;
     _setupIDs();
     currentAnalyticsEvent = _createAnalyticsEvent();
+    _setupTimers();
+}
+
+function _ensureAnalyticsEventExists(eventType, category, subCategory) {
+    let events = currentAnalyticsEvent.events;
+    events[eventType] = events[eventType] || {};
+    events[eventType][category] = events[eventType][category] || {};
+    events[eventType][category][subCategory] = events[eventType][category][subCategory] || {
+        t: [], // quantised time
+        v: [], // value array, can be an array of arrays
+        c: []  // count array of numbers
+    };
+}
+
+function incrementEventCount(eventType, category, subCategory, count=1) {
+    _ensureAnalyticsEventExists(eventType, category, subCategory);
 }
 
 export {
     initSession,
-    getCurrentAnalyticsEvent
+    getCurrentAnalyticsEvent,
+    incrementEventCount
 };
