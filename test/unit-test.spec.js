@@ -4,7 +4,7 @@
 import {
     getCurrentAnalyticsEvent,
     initSession,
-    incrementEventCount
+    analyticsEvent
 } from "../src/index.js";
 
 /**
@@ -55,14 +55,22 @@ describe('core-analytics-client-lib main tests', function () {
         _validateCurrentEvent(event);
     });
 
-    it('should incrementEventCount succeed', async function () {
+    it('should fail analyticsEvent on invalid arguments', function () {
+        initSession("acc1", "app1");
+        chai.expect(analyticsEvent).to.throw();
+        chai.expect(()=>analyticsEvent('ev1', 'cat1', 'sub1', -1)).to.throw();
+        chai.expect(()=>analyticsEvent('ev1', 'cat1', 'sub1', "10")).to.throw();
+        chai.expect(()=>analyticsEvent('ev1', 'cat1', 'sub1', 1, "1"))
+            .to.throw();
+    });
+
+    it('should analyticsEvent api succeed', async function () {
         initSession("acc1", "app1", 10, .1);
-        incrementEventCount('ev1', 'cat1', 'sub1');
-        incrementEventCount('ev1', 'cat2', 'sub1', 5);
+        analyticsEvent('ev1', 'cat1', 'sub1');
+        analyticsEvent('ev1', 'cat2', 'sub1', 5);
         await sleep(200);
-        incrementEventCount('ev1', 'cat2', 'sub1', 2);
+        analyticsEvent('ev1', 'cat2', 'sub1', 2);
         const event = getCurrentAnalyticsEvent();
-        console.log(event);
         _validateCurrentEvent(event, 3, {
             "ev1": {
                 "cat1": {
@@ -75,6 +83,40 @@ describe('core-analytics-client-lib main tests', function () {
                     "sub1": {
                         "time": [0, 0.2],
                         "valueCount": [5, 2]
+                    }
+                }
+            }
+        }, .1);
+    });
+
+    it('should analyticsEvent api succeed if count and value is given subsequently', async function () {
+        initSession("acc1", "app1", 10, .1);
+        analyticsEvent('ev1', 'cat1', 'sub1');
+        analyticsEvent('ev1', 'cat2', 'sub1', 5);
+        analyticsEvent('ev1', 'cat2', 'sub1', 5, 1);
+        analyticsEvent('ev1', 'cat2', 'sub1', 2, 1);
+        await sleep(200);
+        analyticsEvent('ev1', 'cat2', 'sub1', 2);
+        const event = getCurrentAnalyticsEvent();
+        console.log(event);
+        _validateCurrentEvent(event, 5, {
+            "ev1": {
+                "cat1": {
+                    "sub1": {
+                        "time": [0.2],
+                        "valueCount": [1]
+                    }
+                },
+                "cat2": {
+                    "sub1": {
+                        "time": [0.2, 0.4],
+                        "valueCount": [
+                            {
+                                "0": 5,
+                                "1": 7
+                            },
+                            2
+                        ]
                     }
                 }
             }
