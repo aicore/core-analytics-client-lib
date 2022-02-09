@@ -5,7 +5,7 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-npm run release
+npm run minify
 if ! git diff --exit-code --name-only "dist/analytics.min.js" ;
 then
   echo "   ${RED}There has been a change in the distribution file. ${BLUE}dist/analytics.min.js${RED} !!!!!!!

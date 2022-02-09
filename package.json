@@ -1,6 +1,6 @@
 {
   "name": "@aicore/core-analytics-client-lib",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Analytics client library for https://github.com/aicore/Core-Analytics-Server",
   "main": "dist/analytics.min.js",
   "type": "module",
@@ -26,7 +26,9 @@
     "cover:unit": "echo please open test/index.html in browser to run tests",
     "cover:integ": "echo please open test/index.html in browser to run tests",
     "build": "",
-    "release": "echo creating minified package dist/analytics.min.js && mkdir -p dist && uglifyjs src/analytics.js --compress --mangle -o dist/analytics.min.js -c -m --source-map \"root='src/analytics.js',url='analytics.min.js.map'\""
+    "patchVersion": "npm --no-git-tag-version version patch",
+    "minify": "echo creating minified package dist/analytics.min.js && mkdir -p dist && uglifyjs src/analytics.js --compress --mangle -o dist/analytics.min.js -c -m --source-map \"root='src/analytics.js',url='analytics.min.js.map'\"",
+    "release": "npm run patchVersion && npm run minify"
   },
   "repository": {
     "type": "git",
