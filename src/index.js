@@ -8,9 +8,10 @@ const DEFAULT_GRANULARITY_IN_SECONDS = 3;
 const DEFAULT_RETRY_TIME_IN_SECONDS = 30;
 const DEFAULT_POST_INTERVAL_SECONDS = 600; // 10 minutes
 const USERID_LOCAL_STORAGE_KEY = 'aicore.analytics.userID';
+const POST_LARGE_DATA_THRESHOLD_BYTES = 10000;
 let currentAnalyticsEvent = null;
 const IS_NODE_ENV = (typeof window === 'undefined');
-let POST_URL = "http://localhost:3000/ingest";
+let POST_URL = "https://analytics.core.ai/ingest";
 
 let granularityTimer;
 let postTimer;
@@ -86,10 +87,15 @@ function _postCurrentAnalyticsEvent(eventToSend) {
     if(eventToSend.numEventsTotal === 0 ){
         return;
     }
+    let textToSend = JSON.stringify(eventToSend);
+    if(textToSend.length > POST_LARGE_DATA_THRESHOLD_BYTES){
+        console.warn(`Analytics event generated is very large at greater than ${textToSend.length}B. This 
+        typically means that you may be sending too many value events? .`);
+    }
     window.fetch(POST_URL, {
         method: "POST",
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(eventToSend)
+        body: textToSend
     }).then(res=>{
         if(res.status === 200){
             return;

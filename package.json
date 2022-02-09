@@ -1,6 +1,6 @@
 {
   "name": "@aicore/core-analytics-client-lib",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Analytics client library for https://github.com/aicore/Core-Analytics-Server",
   "main": "src/index.js",
   "type": "module",
@@ -25,7 +25,8 @@
     "cover": "echo please open test/index.html in browser to run tests",
     "cover:unit": "echo please open test/index.html in browser to run tests",
     "cover:integ": "echo please open test/index.html in browser to run tests",
-    "build": "echo minification is not supported yet."
+    "build": "echo minification is not supported yet.",
+    "release": "echo release is not supported yet."
   },
   "repository": {
     "type": "git",
