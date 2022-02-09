@@ -5,7 +5,7 @@ import {
     getCurrentAnalyticsEvent,
     initSession,
     analyticsEvent
-} from "../src/analytics.js";
+} from "../dist/analytics.min.js";
 
 /**
  * Determine whether string is timestamp
@@ -28,7 +28,7 @@ function isTimestamp(n) {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-describe('core-analytics-client-lib `src/analytics.js` main tests', function () {
+describe('core-analytics-client-lib `dist/analytics.min.js` minimised main tests', function () {
     it('should throw if accountID and appID missing in init', function () {
         chai.expect(initSession).to.throw();
     });
