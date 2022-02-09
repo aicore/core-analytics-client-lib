@@ -34,12 +34,49 @@ initSession(): Initialize the analytics session. It takes the following paramete
 
 * `accountID`: Your analytics account id as configured in the server or core.ai analytics
 * `appName`: The app name to log the events against. Eg: "phoenixCode"
-* `postIntervalSeconds` **(Optional)**: This defines the interval between sending analytics events to the server. Default is 10 minutes
-* `granularitySec` **(Optional)**: The smallest time period under which the events can be distinguished. Multiple
+* `postIntervalSeconds` (_Optional_): This defines the interval between sending analytics events to the server. Default is 10 minutes
+* `granularitySec` (_Optional_): The smallest time period under which the events can be distinguished. Multiple
 events happening during this time period is aggregated to a count. The default granularity is 3 Seconds, which means
 that any events that happen within 3 seconds cannot be distinguished in ordering.
+* `postBaseURLInit` Optional: Provide your own analytics server address if you self-hosted the server
+
+```javascript
+// Example for custom initSession where the analytics aggregated data 
+// is posted to custom server https://localhost:3000 every 600 secs
+// with a granularity(resolution) of 5 seconds.
+
+initSession("accountID", "appName", 600, 5, "https://localhost:3000");
+```
 
 ## Raising analytics events
+Once `initSession` is called, we can now start logging analytics events by calling `analyticsEvent` API.
+The API registers an analytics event. The events will be aggregated and send to the analytics server periodically.
+
+```javascript
+// analyticsEvent(eventType, eventCategory, subCategory, eventCount, eventValue);
+
+// Eg: event without counts and values
+analyticsEvent("platform", "os", "linux");
+
+// Eg: event with count, here it logs that html file is opened 100 times
+analyticsEvent("file", "opened", "html", 100);
+
+// Eg: event with count and value, here it logs that the startup time is 250 milliseconds. 
+// Note that the value is unitless from analytics perspective. unit is deduced from subCategory name
+analyticsEvent("platform", "performance", "startupTimeMs", 1, 250);
+
+// Eg: event with fractional value.
+analyticsEvent("platform", "CPU", "utilization", 1, .45);
+// Eg. Here we register that the system has 8 cores with each core having 2300MHz frequency.
+analyticsEvent("platform", "CPU", "coreCountsAndFrequencyMhz", 8, 2300);
+```
+### API parameters
+* `eventType` - A string, required
+* `eventCategory` - A string, required
+* `subCategory` - A string, required
+* `eventCount` (_Optional_) : A non-negative number indicating the number of times the event (or an event with a
+particular value if a value is specified) happened. defaults to 1.
+* `eventValue` (_Optional_) : A number value associated with the event. defaults to 0
 
 # Contribute to core-analytics-client-lib
 
