@@ -38,8 +38,8 @@ describe('core-analytics-client-lib main tests', function () {
     });
 
     function _validateCurrentEvent(event, eventCount=0, expectedEvent={}, granularity=3) {
-        chai.expect(event.accountID).to.equal("acc1");
-        chai.expect(event.appName).to.equal("app1");
+        chai.expect(event.accountID).to.equal("unitTestAcc1");
+        chai.expect(event.appName).to.equal("core-analytics-client-lib");
         chai.expect(event.schemaVersion).to.equal(1);
         chai.expect(event.uuid).to.be.a("string");
         chai.expect(event.sessionID).to.be.a("string");
@@ -50,13 +50,13 @@ describe('core-analytics-client-lib main tests', function () {
     }
 
     it('should getCurrentAnalyticsEvent succeed after init', function () {
-        initSession("acc1", "app1");
+        initSession("unitTestAcc1", "core-analytics-client-lib");
         const event = getCurrentAnalyticsEvent();
         _validateCurrentEvent(event);
     });
 
     it('should fail analyticsEvent on invalid arguments', function () {
-        initSession("acc1", "app1");
+        initSession("unitTestAcc1", "core-analytics-client-lib");
         chai.expect(analyticsEvent).to.throw();
         chai.expect(()=>analyticsEvent('ev1', 'cat1', 'sub1', -1)).to.throw();
         chai.expect(()=>analyticsEvent('ev1', 'cat1', 'sub1', "10")).to.throw();
@@ -65,7 +65,7 @@ describe('core-analytics-client-lib main tests', function () {
     });
 
     it('should analyticsEvent api succeed', async function () {
-        initSession("acc1", "app1", 10, .1);
+        initSession("unitTestAcc1", "core-analytics-client-lib", 10, .1);
         analyticsEvent('ev1', 'cat1', 'sub1');
         analyticsEvent('ev1', 'cat2', 'sub1', 5);
         await sleep(200);
@@ -90,7 +90,7 @@ describe('core-analytics-client-lib main tests', function () {
     });
 
     it('should analyticsEvent api succeed if count and value is given subsequently', async function () {
-        initSession("acc1", "app1", 10, .1);
+        initSession("unitTestAcc1", "core-analytics-client-lib", 10, .1);
         analyticsEvent('ev1', 'cat1', 'sub1');
         analyticsEvent('ev1', 'cat2', 'sub1', 5);
         analyticsEvent('ev1', 'cat2', 'sub1', 5, 1);

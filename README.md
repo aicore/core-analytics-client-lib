@@ -17,7 +17,29 @@ events for [Core-Analytics-Server](https://github.com/aicore/Core-Analytics-Serv
   <img src="https://sonarcloud.io/api/project_badges/measure?project=aicore_core-analytics-client-lib&metric=sqale_index" alt="Technical debt" />
 </a>
 
+# Usage
 
+## Initialize the session
+Embed the script in your HTML file : 
+```html
+<html lang="en">
+<script type="module">
+    import {initSession} from "https://unpkg.com/aicore/core-analytics-client-lib/src/index.js";
+    initSession("accountID", "appName");
+</script>
+</html>
+```
+
+initSession(): Initialize the analytics session. It takes the following parameters:
+
+* `accountID`: Your analytics account id as configured in the server or core.ai analytics
+* `appName`: The app name to log the events against. Eg: "phoenixCode"
+* `postIntervalSeconds` **(Optional)**: This defines the interval between sending analytics events to the server. Default is 10 minutes
+* `granularitySec` **(Optional)**: The smallest time period under which the events can be distinguished. Multiple
+events happening during this time period is aggregated to a count. The default granularity is 3 Seconds, which means
+that any events that happen within 3 seconds cannot be distinguished in ordering.
+
+## Raising analytics events
 
 # Contribute to core-analytics-client-lib
 
