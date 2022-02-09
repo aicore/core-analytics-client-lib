@@ -24,6 +24,8 @@ Embed the script in your HTML file :
 ```html
 <html lang="en">
 <script type="module">
+    // For production use cases, use url: https://unpkg.com/aicore/core-analytics-client-lib/dist/analytics.min.js
+    // The below url is for development purposes only.
     import {initSession} from "https://unpkg.com/aicore/core-analytics-client-lib/src/analytics.js";
     initSession("accountID", "appName");
 </script>
