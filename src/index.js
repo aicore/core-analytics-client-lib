@@ -3,7 +3,7 @@
 // jshint ignore: start
 /*global localStorage, sessionStorage, crypto*/
 
-let accountID, appName, userID, sessionID, postIntervalSeconds, granularitySec;
+let accountID, appName, userID, sessionID, postIntervalSeconds, granularitySec, postURL;
 const DEFAULT_GRANULARITY_IN_SECONDS = 3;
 const DEFAULT_RETRY_TIME_IN_SECONDS = 30;
 const DEFAULT_POST_INTERVAL_SECONDS = 600; // 10 minutes
@@ -11,7 +11,7 @@ const USERID_LOCAL_STORAGE_KEY = 'aicore.analytics.userID';
 const POST_LARGE_DATA_THRESHOLD_BYTES = 10000;
 let currentAnalyticsEvent = null;
 const IS_NODE_ENV = (typeof window === 'undefined');
-let POST_URL = "https://analytics.core.ai/ingest";
+let DEFAULT_BASE_URL = "https://analytics.core.ai";
 
 let granularityTimer;
 let postTimer;
@@ -92,7 +92,7 @@ function _postCurrentAnalyticsEvent(eventToSend) {
         console.warn(`Analytics event generated is very large at greater than ${textToSend.length}B. This 
         typically means that you may be sending too many value events? .`);
     }
-    window.fetch(POST_URL, {
+    window.fetch(postURL, {
         method: "POST",
         headers: {'Content-Type': 'application/json'},
         body: textToSend
@@ -136,8 +136,9 @@ function _setupTimers() {
  * @param granularitySecInit Optional: The smallest time period under which the events can be distinguished. Multiple
  * events happening during this time period is aggregated to a count. The default granularity is 3 Seconds, which means
  * that any events that happen within 3 seconds cannot be distinguished in ordering.
+ * @param postBaseURLInit Optional: Provide your own analytics server address if you self-hosted the server
  */
-function initSession(accountIDInit, appNameInit, postIntervalSecondsInit, granularitySecInit) {
+function initSession(accountIDInit, appNameInit, postIntervalSecondsInit, granularitySecInit, postBaseURLInit) {
     if(!accountIDInit || !appNameInit){
         throw new Error("accountID and appName must exist for init");
     }
@@ -145,6 +146,7 @@ function initSession(accountIDInit, appNameInit, postIntervalSecondsInit, granul
     appName = appNameInit;
     postIntervalSeconds = postIntervalSecondsInit || DEFAULT_POST_INTERVAL_SECONDS;
     granularitySec = granularitySecInit || DEFAULT_GRANULARITY_IN_SECONDS;
+    postURL = (postBaseURLInit || DEFAULT_BASE_URL) + "/ingest";
     _setupIDs();
     currentAnalyticsEvent = _createAnalyticsEvent();
     _setupTimers();
@@ -190,26 +192,35 @@ function _updateExistingAnalyticsEvent(index, eventType, category, subCategory, 
     currentAnalyticsEvent.numEventsTotal += 1;
 }
 
-function analyticsEvent(eventType, category, subCategory, count=1, value=0) {
-    _validateEvent(eventType, category, subCategory, count, value);
-    _ensureAnalyticsEventExists(eventType, category, subCategory);
+/**
+ * Register an analytics event. The events will be aggregated and send to the analytics server periodically.
+ * @param eventType - String, required
+ * @param eventCategory - String, required
+ * @param subCategory - String, required
+ * @param eventCount (Optional) : A non-negative number indicating the number of times the event (or an event with a
+ * particular value if a value is specified) happened. defaults to 1.
+ * @param eventValue (Optional) : A number value associated with the event. defaults to 0
+ */
+function analyticsEvent(eventType, eventCategory, subCategory, eventCount=1, eventValue=0) {
+    _validateEvent(eventType, eventCategory, subCategory, eventCount, eventValue);
+    _ensureAnalyticsEventExists(eventType, eventCategory, subCategory);
     let events = currentAnalyticsEvent.events;
-    let timeArray = events[eventType][category][subCategory]["time"];
+    let timeArray = events[eventType][eventCategory][subCategory]["time"];
     let lastTime = timeArray.length>0? timeArray[timeArray.length-1] : null;
     if(lastTime !== currentQuantisedTime){
-        events[eventType][category][subCategory]["time"].push(currentQuantisedTime);
-        if(value===0){
-            events[eventType][category][subCategory]["valueCount"].push(count);
+        events[eventType][eventCategory][subCategory]["time"].push(currentQuantisedTime);
+        if(eventValue===0){
+            events[eventType][eventCategory][subCategory]["valueCount"].push(eventCount);
         } else {
             let valueCount = {};
-            valueCount[value] = count;
-            events[eventType][category][subCategory]["valueCount"].push(valueCount);
+            valueCount[eventValue] = eventCount;
+            events[eventType][eventCategory][subCategory]["valueCount"].push(valueCount);
         }
         currentAnalyticsEvent.numEventsTotal += 1;
         return;
     }
-    let modificationIndex = events[eventType][category][subCategory]["valueCount"].length -1;
-    _updateExistingAnalyticsEvent(modificationIndex, eventType, category, subCategory, count, value);
+    let modificationIndex = events[eventType][eventCategory][subCategory]["valueCount"].length -1;
+    _updateExistingAnalyticsEvent(modificationIndex, eventType, eventCategory, subCategory, eventCount, eventValue);
 }
 
 export {
