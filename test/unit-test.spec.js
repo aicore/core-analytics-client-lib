@@ -98,7 +98,6 @@ describe('core-analytics-client-lib main tests', function () {
         await sleep(200);
         analyticsEvent('ev1', 'cat2', 'sub1', 2);
         const event = getCurrentAnalyticsEvent();
-        console.log(event);
         _validateCurrentEvent(event, 5, {
             "ev1": {
                 "cat1": {
