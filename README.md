@@ -24,7 +24,7 @@ Embed the script in your HTML file :
 ```html
 <html lang="en">
 <script type="module">
-    import {initSession} from "https://unpkg.com/aicore/core-analytics-client-lib/src/index.js";
+    import {initSession} from "https://unpkg.com/aicore/core-analytics-client-lib/src/analytics.js";
     initSession("accountID", "appName");
 </script>
 </html>
@@ -84,7 +84,6 @@ particular value if a value is specified) happened. defaults to 1.
 Since this is a pure JS template project, build command just runs test with coverage.
 ```shell
 > npm install   // do this only once.
-> npm run build
 ```
 
 ## Linting
@@ -98,66 +97,7 @@ To Automatically fix lint errors:
 ```
 
 ## Testing
-To run all tests:
-```shell
-> npm run test
-  Hello world Tests
-    ✔ should return Hello World
-    #indexOf()
-      ✔ should return -1 when the value is not present
-```
-
-Additionally, to run unit/integration tests only, use the commands:
-```shell
-> npm run test:unit
-> npm run test:integ
-```
-
-## Coverage Reports
-To run all tests with coverage:
-
-```shell
-> npm run cover
-  Hello world Tests
-    ✔ should return Hello World
-    #indexOf()
-      ✔ should return -1 when the value is not present
-
-
-  2 passing (6ms)
-
-----------|---------|----------|---------|---------|-------------------
-File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
-----------|---------|----------|---------|---------|-------------------
-All files |     100 |      100 |     100 |     100 |                   
- index.js |     100 |      100 |     100 |     100 |                   
-----------|---------|----------|---------|---------|-------------------
-
-=============================== Coverage summary ===============================
-Statements   : 100% ( 5/5 )
-Branches     : 100% ( 2/2 )
-Functions    : 100% ( 1/1 )
-Lines        : 100% ( 5/5 )
-================================================================================
-Detailed unit test coverage report: file:///template-nodejs/coverage-unit/index.html
-Detailed integration test coverage report: file:///template-nodejs/coverage-integration/index.html
-```
-After running coverage, detailed reports can be found in the coverage folder listed in the output of coverage command.
-Open the file in browser to view detailed reports.
-
-To run unit/integration tests only with coverage
-```shell
-> npm run cover:unit
-> npm run cover:integ
-```
-
-Sample coverage report:
-![image](https://user-images.githubusercontent.com/5336369/148687351-6d6c12a2-a232-433d-ab62-2cf5d39c96bd.png)
-
-### Unit and Integration coverage configs
-Unit and integration test coverage settings can be updated by configs `.nycrc.unit.json` and `.nycrc.integration.json`.
-
-See https://github.com/istanbuljs/nyc for config options.
+To run tests, open the file `test/unit-test.html` in the browser.
 
 # Publishing packages to NPM
 To publish a package to npm, raise a pull request against `npm` branch.

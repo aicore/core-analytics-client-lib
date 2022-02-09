@@ -2,7 +2,7 @@
   "name": "@aicore/core-analytics-client-lib",
   "version": "1.0.1",
   "description": "Analytics client library for https://github.com/aicore/Core-Analytics-Server",
-  "main": "src/index.js",
+  "main": "dist/analytics.min.js",
   "type": "module",
   "keywords": [
     "analytics",
@@ -26,7 +26,7 @@
     "cover:unit": "echo please open test/index.html in browser to run tests",
     "cover:integ": "echo please open test/index.html in browser to run tests",
     "build": "echo minification is not supported yet.",
-    "release": "echo release is not supported yet."
+    "release": "mkdir -p dist && uglifyjs src/analytics.js --compress --mangle -o dist/analytics.min.js -c -m --source-map \"root='http://foo.com/src',url='foo.min.js.map'\""
   },
   "repository": {
     "type": "git",
@@ -45,6 +45,7 @@
     "chai": "4.3.6",
     "eslint": "8.8.0",
     "husky": "7.0.4",
-    "mocha": "9.2.0"
+    "mocha": "9.2.0",
+    "uglify-js": "3.15.1"
   }
 }
