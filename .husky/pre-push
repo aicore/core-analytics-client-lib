@@ -1,5 +1,18 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
 npm run release
+if ! git diff --exit-code --name-only "dist/analytics.min.js" ;
+then
+  echo "   ${RED}There has been a change in the distribution file. ${BLUE}dist/analytics.min.js${RED} !!!!!!!
+   minified files corresponding to the code changes should be generated before pushing to the repo.
+   Please execute: ${BLUE}npm run release${RED}
+   And commit the files ${BLUE}dist/analytics.min.js, dist/analytics.min.js.map${RED} and try again${NC}"
+  exit 1
+fi
+
 npm run build
