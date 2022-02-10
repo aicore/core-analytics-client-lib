@@ -10,14 +10,19 @@ schema:
  "sessionID": "s1",
  "granularitySec" : 3,
  "unixTimestampUTC" : 1643043376,
- "numEventsTotal": 25,
+ "numEventsTotal": 8,
  "events":{
    "eventType":{
     "category":{
       "subCategory": {
-       "t": [0,3],
-       "v": [1,[1,3]],
-       "c": [23,2]
+       "time": [0,2],
+       "valueCount": [
+          1,
+          [{
+          "1": 5,
+          "3": 2
+          }]
+       ]
       }
     }
    }
@@ -34,45 +39,56 @@ schema:
 5. `unixTimestampUTC`: The start Unix time from which the client time is being recorded.
 5. `numEventsTotal`: The sum total of all events raised from the client. This aggregates all count values `c`
 6. `events` : A map of events that took place from `unixTimestamp`. The keys are nested in order `eventType`  > `category` > `subCategory`
-    * Within a subcategory, `t` array specifies the `time window` in seconds from the `unixTimestamp` for which the current event is raised.
-    * `v` array specifies the `values` if any that are logged as part of the event. If no value is specified, the default value `1` is used. If multiple values are logged within the same window, it is logged as an array.
-    * `c` array specifies the `count` of events that happened within the time window. For Eg. in the above schema, the event that started in window 0 repeated 23 counts within the window with the default value(1).
+    * Within a subcategory, `time` array specifies the `time window` in seconds from the `unixTimestamp` for which the current event is raised.
+    * `valueCount` array specifies the `values` and/or related counts. If the array
+      item is a number, then it signifies count. If it is an object, then
+      it indicates values and the corresponding counts.
 
 ## sample analytics event
 Schema
 ```json
 {
- "schemaVersion" : 1,
- "appName" : "brackets",
- "uuid": "u1",
- "sessionID": "s1",
- "granularitySec" : 3,
- "unixTimestampUTC" : 1643043376,
- "numEventsTotal" : 5,
- "events":{
-   "platform":{
-    "os":{
-      "win": {
-       "t": [0],
-       "v": [1],
-       "c": [1]
+   "schemaVersion": 1,
+   "appName": "brackets",
+   "uuid": "u1",
+   "sessionID": "s1",
+   "granularitySec": 3,
+   "unixTimestampUTC": 1643043376,
+   "numEventsTotal": 5,
+   "events": {
+      "platform": {
+         "os": {
+            "win": {
+               "time": [0],
+               "valueCount": [1]
+            }
+         },
+         "performance": {
+            "fileOpenTimeMs": {
+               "time": [0, 2, 5],
+               "valueCount": [
+                  [{
+                     "121": 1
+                  }],
+                  [{
+                     "100": 1,
+                     "300": 1
+                  }],
+                  [{
+                     "100": 5
+                  }]
+               ]
+            }
+         }
       }
-    }, "performance":{
-      "fileOpenTimeMs": {
-       "t": [0,3,6],
-       "v": [102, [50,34], 200],
-       "c": [1,2,1]
-      }
-    }
    }
- }
 }
 
 ```
 The above event raises two event types :
 1. (platform, os, win)
 2. (platform, performance, fileOpenTimeMs)
-    * at time `1643043376 + 0`, a value of `102` is registered.
-    * at time `1643043376 + 3000`, two values `[50,34]` are registered.
-    * at time `1643043376 + 6000`, a value of 200 is registered.
+    * at time `1643043376 + 0`, a value of `121` is registered and count is 1.
+    * at time `1643043376 + 3000`, two values `[100,300]` are registered with a count each of 1.
+    * at time `1643043376 + 6000`, a value of `500` is registered with a count of 5.
 
