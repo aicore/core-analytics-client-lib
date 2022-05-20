@@ -1,14 +1,7 @@
 // jshint ignore: start
-/*global describe, it, chai, beforeEach, afterEach*/
+/*global describe, it, chai, beforeEach, afterEach, analytics*/
 
-// Open unit-test.html in browser with npm run serve to run tests.
-import {
-    getCurrentAnalyticsEvent,
-    initSession,
-    analyticsEvent,
-    getAppConfig
-} from "../src/analytics.js";
-
+// Open unit-test.html and unit-test-for-min.html in browser with npm run serve to run tests.
 /**
  * Determine whether string is timestamp
  *
@@ -30,7 +23,7 @@ function isTimestamp(n) {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-describe('core-analytics-client-lib `src/analytics.js` main tests', function () {
+describe('core-analytics-client-lib main tests', function () {
     let savedFetch = window.fetch;
     beforeEach(async function () {
         window.fetch = function (){
@@ -43,11 +36,11 @@ describe('core-analytics-client-lib `src/analytics.js` main tests', function () 
     });
 
     it('should throw if accountID and appID missing in init', function () {
-        chai.expect(initSession).to.throw();
+        chai.expect(analytics.initSession).to.throw();
     });
 
     it('should getCurrentAnalyticsEvent throw if not inited', function () {
-        chai.expect(getCurrentAnalyticsEvent).to.throw();
+        chai.expect(analytics.getCurrentAnalyticsEvent).to.throw();
     });
 
     function _validateCurrentEvent(event, eventCount=0, expectedEvent={}, granularity=3) {
@@ -62,27 +55,27 @@ describe('core-analytics-client-lib `src/analytics.js` main tests', function () 
     }
 
     it('should getCurrentAnalyticsEvent succeed after init', function () {
-        initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", undefined, undefined, true);
-        const event = getCurrentAnalyticsEvent();
+        analytics.initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", undefined, undefined, true);
+        const event = analytics.getCurrentAnalyticsEvent();
         _validateCurrentEvent(event);
     });
 
     it('should fail analyticsEvent on invalid arguments', function () {
-        initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", undefined, undefined, true);
-        chai.expect(analyticsEvent).to.throw();
-        chai.expect(()=>analyticsEvent('ev1', 'cat1', 'sub1', -1)).to.throw();
-        chai.expect(()=>analyticsEvent('ev1', 'cat1', 'sub1', "10")).to.throw();
-        chai.expect(()=>analyticsEvent('ev1', 'cat1', 'sub1', 1, "1"))
+        analytics.initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", undefined, undefined, true);
+        chai.expect(analytics.event).to.throw();
+        chai.expect(()=>analytics.event('ev1', 'cat1', 'sub1', -1)).to.throw();
+        chai.expect(()=>analytics.event('ev1', 'cat1', 'sub1', "10")).to.throw();
+        chai.expect(()=>analytics.event('ev1', 'cat1', 'sub1', 1, "1"))
             .to.throw();
     });
 
     it('should analyticsEvent api succeed', async function () {
-        initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", 10, .1, true);
-        analyticsEvent('ev1', 'cat1', 'sub1');
-        analyticsEvent('ev1', 'cat2', 'sub1', 5);
+        analytics.initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", 10, .1, true);
+        analytics.event('ev1', 'cat1', 'sub1');
+        analytics.event('ev1', 'cat2', 'sub1', 5);
         await sleep(200);
-        analyticsEvent('ev1', 'cat2', 'sub1', 2);
-        const event = getCurrentAnalyticsEvent();
+        analytics.event('ev1', 'cat2', 'sub1', 2);
+        const event = analytics.getCurrentAnalyticsEvent();
         _validateCurrentEvent(event, 3, {
             "ev1": {
                 "cat1": {
@@ -102,14 +95,14 @@ describe('core-analytics-client-lib `src/analytics.js` main tests', function () 
     });
 
     it('should analyticsEvent api succeed if count and value is given subsequently', async function () {
-        initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", 10, .1, true);
-        analyticsEvent('ev1', 'cat1', 'sub1');
-        analyticsEvent('ev1', 'cat2', 'sub1', 5);
-        analyticsEvent('ev1', 'cat2', 'sub1', 5, 1);
-        analyticsEvent('ev1', 'cat2', 'sub1', 2, 1);
+        analytics.initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", 10, .1, true);
+        analytics.event('ev1', 'cat1', 'sub1');
+        analytics.event('ev1', 'cat2', 'sub1', 5);
+        analytics.event('ev1', 'cat2', 'sub1', 5, 1);
+        analytics.event('ev1', 'cat2', 'sub1', 2, 1);
         await sleep(200);
-        analyticsEvent('ev1', 'cat2', 'sub1', 2);
-        const event = getCurrentAnalyticsEvent();
+        analytics.event('ev1', 'cat2', 'sub1', 2);
+        const event = analytics.getCurrentAnalyticsEvent();
         _validateCurrentEvent(event, 5, {
             "ev1": {
                 "cat1": {
@@ -150,9 +143,9 @@ describe('core-analytics-client-lib `src/analytics.js` main tests', function () 
               }
           });
         };
-        initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", undefined, undefined, true);
+        analytics.initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", undefined, undefined, true);
         await sleep(100);
-        let appConfig = getAppConfig();
+        let appConfig = analytics.getAppConfig();
         chai.expect(appConfig.postIntervalSeconds).to.eql(4646);
         chai.expect(appConfig.granularitySec).to.eql(53);
         chai.expect(appConfig.analyticsURL).to.eql("https://lols");
@@ -179,10 +172,10 @@ describe('core-analytics-client-lib `src/analytics.js` main tests', function () 
                 }
             });
         };
-        initSession("unitTestAcc1", "core-analytics-client-lib",
+        analytics.initSession("unitTestAcc1", "core-analytics-client-lib",
             "https://uyer", 45, 12, true);
         await sleep(100);
-        let appConfig = getAppConfig();
+        let appConfig = analytics.getAppConfig();
         chai.expect(appConfig.postIntervalSeconds).to.eql(45);
         chai.expect(appConfig.granularitySec).to.eql(12);
         // Init URLs are  always server overriden
@@ -203,9 +196,9 @@ describe('core-analytics-client-lib `src/analytics.js` main tests', function () 
                 }
             });
         };
-        initSession("unitTestAcc1", "core-analytics-client-lib", "https://someURL", undefined, undefined, true);
+        analytics.initSession("unitTestAcc1", "core-analytics-client-lib", "https://someURL", undefined, undefined, true);
         await sleep(100);
-        let appConfig = getAppConfig();
+        let appConfig = analytics.getAppConfig();
         chai.expect(appConfig.postIntervalSeconds).to.eql(600);
         chai.expect(appConfig.granularitySec).to.eql(3);
         chai.expect(appConfig.analyticsURL).to.eql("https://someURL");
@@ -217,9 +210,9 @@ describe('core-analytics-client-lib `src/analytics.js` main tests', function () 
         window.fetch = function () {
             return Promise.reject({});
         };
-        initSession("unitTestAcc1", "core-analytics-client-lib", "https://someURL", undefined, undefined, true);
+        analytics.initSession("unitTestAcc1", "core-analytics-client-lib", "https://someURL", undefined, undefined, true);
         await sleep(100);
-        let appConfig = getAppConfig();
+        let appConfig = analytics.getAppConfig();
         chai.expect(appConfig.postIntervalSeconds).to.eql(600);
         chai.expect(appConfig.granularitySec).to.eql(3);
         chai.expect(appConfig.analyticsURL).to.eql("https://someURL");
@@ -238,13 +231,13 @@ describe('core-analytics-client-lib `src/analytics.js` main tests', function () 
                 }
             });
         };
-        initSession("unitTestAcc2", "core-analytics-client-lib", undefined, 10, .1, true);
+        analytics.initSession("unitTestAcc2", "core-analytics-client-lib", undefined, 10, .1, true);
         await sleep(200);
-        analyticsEvent('ev1', 'cat1', 'sub1');
-        analyticsEvent('ev1', 'cat2', 'sub1', 5);
-        let appConfig = getAppConfig();
+        analytics.event('ev1', 'cat1', 'sub1');
+        analytics.event('ev1', 'cat2', 'sub1', 5);
+        let appConfig = analytics.getAppConfig();
         chai.expect(appConfig.disabled).to.eql(true);
-        const event = getCurrentAnalyticsEvent();
+        const event = analytics.getCurrentAnalyticsEvent();
         chai.expect(event.events).to.eql({});
     });
 });
