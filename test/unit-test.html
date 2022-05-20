@@ -1,14 +1,27 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Mocha Tests</title>
-  <link href="https://unpkg.com/mocha@4.0.1/mocha.css" rel="stylesheet" />
-  <script src="https://unpkg.com/mocha@4.0.1/mocha.js"></script>
-  <script src="../src/analytics.js"></script>
+    <meta charset="UTF-8">
+    <title>Unit test suite</title>
+    <style>
+        html,body{
+            width: 100%;
+            height: 100%;
+        }
+    </style>
 </head>
 <body>
-<div id="mocha"></div>
-<script type="module" src="setup.js"></script>
-<script type="module" src="run.js"></script>
+<iframe src="unit-test-for-src.html" frameborder="0" scrolling="yes"
+        style="height: 100%;
+                                            width: 49%; float: left; " height="100%" width="49%"
+        align="left">
+</iframe>
+
+<iframe src="unit-test-for-min.html" frameborder="0" scrolling="yes"
+        style="overflow: hidden; height: 100%;
+
+                                    width: 49%; " height="100%" width="49%"
+        align="right">
+</iframe>
 </body>
 </html>
