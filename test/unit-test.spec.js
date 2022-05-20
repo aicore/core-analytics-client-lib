@@ -1,7 +1,7 @@
 // jshint ignore: start
 /*global describe, it, chai, beforeEach, afterEach, analytics*/
 
-// Open unit-test.html and unit-test-for-min.html in browser with npm run serve to run tests.
+// Open http://127.0.0.1:8000/test/unit-test.html in browser with `npm run serve` to run tests.
 /**
  * Determine whether string is timestamp
  *
