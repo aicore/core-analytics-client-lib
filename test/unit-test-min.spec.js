@@ -1,10 +1,11 @@
 // jshint ignore: start
-/*global describe, it, chai*/
+/*global describe, it, chai, beforeEach, afterEach*/
 
 import {
     getCurrentAnalyticsEvent,
     initSession,
-    analyticsEvent
+    analyticsEvent,
+    getAppConfig
 } from "../dist/analytics.min.js";
 
 /**
@@ -29,6 +30,17 @@ function isTimestamp(n) {
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 describe('core-analytics-client-lib `dist/analytics.min.js` minimised main tests', function () {
+    let savedFetch = window.fetch;
+    beforeEach(async function () {
+        window.fetch = function (){
+            return Promise.resolve({});
+        };
+    });
+
+    afterEach(async function () {
+        window.fetch = savedFetch;
+    });
+
     it('should throw if accountID and appID missing in init', function () {
         chai.expect(initSession).to.throw();
     });
@@ -43,7 +55,6 @@ describe('core-analytics-client-lib `dist/analytics.min.js` minimised main tests
         chai.expect(event.schemaVersion).to.equal(1);
         chai.expect(event.uuid).to.be.a("string");
         chai.expect(event.sessionID).to.be.a("string");
-        chai.expect(event.granularitySec).to.be.equal(granularity);
         chai.expect(isTimestamp(event.unixTimestampUTC)).to.be.true;
         chai.expect(event.numEventsTotal).to.be.equal(eventCount);
         chai.expect(event.events).to.eql(expectedEvent);
@@ -65,7 +76,7 @@ describe('core-analytics-client-lib `dist/analytics.min.js` minimised main tests
     });
 
     it('should analyticsEvent api succeed', async function () {
-        initSession("unitTestAcc1", "core-analytics-client-lib", 10, .1);
+        initSession("unitTestAcc1", "core-analytics-client-lib", undefined, 10, .1);
         analyticsEvent('ev1', 'cat1', 'sub1');
         analyticsEvent('ev1', 'cat2', 'sub1', 5);
         await sleep(200);
@@ -90,7 +101,7 @@ describe('core-analytics-client-lib `dist/analytics.min.js` minimised main tests
     });
 
     it('should analyticsEvent api succeed if count and value is given subsequently', async function () {
-        initSession("unitTestAcc1", "core-analytics-client-lib", 10, .1);
+        initSession("unitTestAcc1", "core-analytics-client-lib", undefined, 10, .1);
         analyticsEvent('ev1', 'cat1', 'sub1');
         analyticsEvent('ev1', 'cat2', 'sub1', 5);
         analyticsEvent('ev1', 'cat2', 'sub1', 5, 1);
@@ -120,5 +131,94 @@ describe('core-analytics-client-lib `dist/analytics.min.js` minimised main tests
                 }
             }
         }, .1);
+    });
+
+    it('should server override analytics config', async function () {
+        window.fetch = function () {
+            return Promise.resolve({
+                "status": 200,
+                json: function () {
+                    return Promise.resolve({
+                        "postIntervalSecondsInit": 4646,
+                        "granularitySecInit": 53,
+                        "analyticsURLInit": "https://lols",
+                        "custom": {
+                            "hello": "world"
+                        }
+                    });
+                }
+            });
+        };
+        initSession("unitTestAcc1", "core-analytics-client-lib");
+        await sleep(100);
+        let appConfig = getAppConfig();
+        chai.expect(appConfig.postIntervalSeconds).to.eql(4646);
+        chai.expect(appConfig.granularitySec).to.eql(53);
+        chai.expect(appConfig.analyticsURL).to.eql("https://lols");
+        chai.expect(appConfig.serverConfig.postIntervalSecondsInit).to.eql(4646);
+        chai.expect(appConfig.serverConfig.granularitySecInit).to.eql(53);
+        chai.expect(appConfig.serverConfig.analyticsURLInit).to.eql("https://lols");
+        chai.expect(appConfig.serverConfig.custom).to.eql({"hello": "world"});
+    });
+
+    it('should not server override if user override specified in init analytics config', async function () {
+        window.fetch = function () {
+            return Promise.resolve({
+                "status": 200,
+                json: function () {
+                    return Promise.resolve({
+                        "postIntervalSecondsInit": 4646,
+                        "granularitySecInit": 53,
+                        "analyticsURLInit": "https://lols",
+                        "custom": {
+                            "hello": "world"
+                        }
+                    });
+                }
+            });
+        };
+        initSession("unitTestAcc1", "core-analytics-client-lib",
+            "https://uyer", 45, 12);
+        await sleep(100);
+        let appConfig = getAppConfig();
+        chai.expect(appConfig.postIntervalSeconds).to.eql(45);
+        chai.expect(appConfig.granularitySec).to.eql(12);
+        // Init URLs are  always server overriden
+        chai.expect(appConfig.analyticsURL).to.eql("https://lols");
+        chai.expect(appConfig.serverConfig.postIntervalSecondsInit).to.eql(4646);
+        chai.expect(appConfig.serverConfig.granularitySecInit).to.eql(53);
+        chai.expect(appConfig.serverConfig.analyticsURLInit).to.eql("https://lols");
+        chai.expect(appConfig.serverConfig.custom).to.eql({"hello": "world"});
+    });
+
+    it('should work if no server override config present', async function () {
+        window.fetch = function () {
+            return Promise.resolve({
+                "status": 200,
+                json: function () {
+                    return Promise.resolve({});
+                }
+            });
+        };
+        initSession("unitTestAcc1", "core-analytics-client-lib", "https://someURL");
+        await sleep(100);
+        let appConfig = getAppConfig();
+        chai.expect(appConfig.postIntervalSeconds).to.eql(600);
+        chai.expect(appConfig.granularitySec).to.eql(3);
+        chai.expect(appConfig.analyticsURL).to.eql("https://someURL");
+        chai.expect(appConfig.serverConfig).to.eql({});
+    });
+
+    it('should work if server override config call failed', async function () {
+        window.fetch = function () {
+            return Promise.reject({});
+        };
+        initSession("unitTestAcc1", "core-analytics-client-lib", "https://someURL");
+        await sleep(100);
+        let appConfig = getAppConfig();
+        chai.expect(appConfig.postIntervalSeconds).to.eql(600);
+        chai.expect(appConfig.granularitySec).to.eql(3);
+        chai.expect(appConfig.analyticsURL).to.eql("https://someURL");
+        chai.expect(appConfig.serverConfig).to.eql({});
     });
 });
