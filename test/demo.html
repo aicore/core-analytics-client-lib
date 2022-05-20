@@ -7,7 +7,6 @@
     <script type="module">
         // For production use cases, use url: https://unpkg.com/@aicore/core-analytics-client-lib/dist/analytics.min.js
         // The above url is for development purposes only.
-        window.debugModeLogs = true;
         analytics.initSession("acc1", "testApp", "http://localhost:3000", 5, 1, true);
         analytics.event("platform", "os", "linux");
     </script>

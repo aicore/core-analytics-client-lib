@@ -19,20 +19,15 @@ events for [Core-Analytics-Server](https://github.com/aicore/Core-Analytics-Serv
 
 # Usage
 
-## Initialize the session
+## Load the Library
 Embed the script in your HTML file : 
 ```html
-<html lang="en">
-<script type="module">
-    // For production use cases, use url: https://unpkg.com/@aicore/core-analytics-client-lib/dist/analytics.min.js
-    // The below url is for development purposes only.
-    import {initSession} from "https://unpkg.com/@aicore/core-analytics-client-lib/src/analytics.js";
-    initSession("accountID", "appName");
-</script>
-</html>
+<script src="https://unpkg.com/@aicore/core-analytics-client-lib/src/analytics.js"></script>
 ```
+This will create a global `analytics` variable which can be used to access the analytics APIs. 
 
-initSession(): Initialize the analytics session. It takes the following parameters:
+## Initialize the analytics session.
+Call `analytics.initSession()` after loading the library. It takes the following parameters:
 
 * `accountID`: Your analytics account id as configured in the server or core.ai analytics
 * `appName`: The app name to log the events against. Eg: "phoenixCode"
@@ -43,38 +38,41 @@ that any events that happen within 3 seconds cannot be distinguished in ordering
 * `analyticsURL` (_Optional_): Provide your own analytics server address if you self-hosted the server
 * `debug` (_Optional_):  set to true if you want to see detailed debug logs.
 
+### usageExample
 ```javascript
+// Init with default values.
+analytics.initSession("accountID", "appName");
+
 // Example for custom initSession where the analytics aggregated data 
 // is posted to custom server https://localhost:3000 every 600 secs
 // with a granularity(resolution) of 5 seconds.
-
-initSession("accountID", "appName", "https://localhost:3000", 600, 5);
+analytics.initSession("accountID", "appName", "https://localhost:3000", 600, 5);
 
 // To initSession in debug mode set debug arg in init to true:
-initSession("accountID", "appName", "https://localhost:3000", 600, 5, true);
+analytics.initSession("accountID", "appName", "https://localhost:3000", 600, 5, true);
 ```
 
 ## Raising analytics events
-Once `initSession` is called, we can now start logging analytics events by calling `analyticsEvent` API.
+Once `initSession` is called, we can now start logging analytics events by calling `analytics.event` API.
 The API registers an analytics event. The events will be aggregated and send to the analytics server periodically.
 
 ```javascript
 // analyticsEvent(eventType, eventCategory, subCategory, eventCount, eventValue);
 
 // Eg: event without counts and values
-analyticsEvent("platform", "os", "linux");
+analytics.event("platform", "os", "linux");
 
 // Eg: event with count, here it logs that html file is opened 100 times
-analyticsEvent("file", "opened", "html", 100);
+analytics.event("file", "opened", "html", 100);
 
 // Eg: event with count and value, here it logs that the startup time is 250 milliseconds. 
 // Note that the value is unitless from analytics perspective. unit is deduced from subCategory name
-analyticsEvent("platform", "performance", "startupTimeMs", 1, 250);
+analytics.event("platform", "performance", "startupTimeMs", 1, 250);
 
 // Eg: event with fractional value.
-analyticsEvent("platform", "CPU", "utilization", 1, .45);
+analytics.event("platform", "CPU", "utilization", 1, .45);
 // Eg. Here we register that the system has 8 cores with each core having 2300MHz frequency.
-analyticsEvent("platform", "CPU", "coreCountsAndFrequencyMhz", 8, 2300);
+analytics.event("platform", "CPU", "coreCountsAndFrequencyMhz", 8, 2300);
 ```
 ### API parameters
 * `eventType` - A string, required
