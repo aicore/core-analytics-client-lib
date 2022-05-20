@@ -17,8 +17,22 @@ let granularityTimer;
 let postTimer;
 let currentQuantisedTime = 0;
 let disabled = false;
+let debugMode = false;
 
-//TODO: debug logs
+function debugLog(...args) {
+    if(!debugMode){
+        return;
+    }
+    console.log(...args);
+}
+
+function debugError(...args) {
+    if(!debugMode){
+        return;
+    }
+    console.error(...args);
+}
+
 
 if(IS_NODE_ENV){
     throw new Error("Node environment is not currently supported");
@@ -74,7 +88,7 @@ function _setupIDs() {
 
 function _retryPost(eventToSend) {
     eventToSend.backoffCount = (eventToSend.backoffCount || 0) + 1;
-    console.log(`Failed to call core analytics server. Will retry in ${
+    debugLog(`Failed to call core analytics server. Will retry in ${
         DEFAULT_RETRY_TIME_IN_SECONDS * eventToSend.backoffCount}s: `);
     setTimeout(()=>{
         _postCurrentAnalyticsEvent(eventToSend);
@@ -99,6 +113,7 @@ function _postCurrentAnalyticsEvent(eventToSend) {
         console.warn(`Analytics event generated is very large at greater than ${textToSend.length}B. This 
         typically means that you may be sending too many value events? .`);
     }
+    debugLog("Sending Analytics data of length: ", textToSend.length, "B");
     window.fetch(postURL, {
         method: "POST",
         headers: {'Content-Type': 'application/json'},
@@ -114,7 +129,7 @@ function _postCurrentAnalyticsEvent(eventToSend) {
                 "Bad Request, this is most likely a problem with the library, update to latest version.");
         }
     }).catch(res => {
-        console.error(res);
+        debugError(res);
         _retryPost(eventToSend);
     });
 }
@@ -167,7 +182,7 @@ async function _getServerConfig() {
 
 /**
  * Returns the analytics config for the app
- * @returns {Promise<Object>}
+ * @returns {Object}
  */
 function getAppConfig() {
     return {
@@ -188,8 +203,11 @@ async function _initFromRemoteConfig(postIntervalSecondsInit, granularitySecInit
         analyticsURL = serverConfig["analyticsURLInit"] || analyticsURL || DEFAULT_BASE_URL;
         disabled = serverConfig["disabled"] === true;
         _setupTimers(disabled);
-        console.log(`Init analytics Config from remote. disabled: ${disabled}, URL: ${analyticsURL}
-        postIntervalSeconds:${postIntervalSeconds}, granularitySec: ${granularitySec} `);
+        debugLog(`Init analytics Config from remote. disabled: ${disabled}
+        postIntervalSeconds:${postIntervalSeconds}, granularitySec: ${granularitySec} ,URL: ${analyticsURL}`);
+        if(disabled){
+            console.warn(`Core Analytics is disabled from the server for app: ${accountID}:${appName}`);
+        }
     }
 }
 
@@ -207,14 +225,17 @@ function _stripTrailingSlash(url) {
  * @param granularitySecInit Optional: The smallest time period under which the events can be distinguished. Multiple
  * events happening during this time period is aggregated to a count. The default granularity is 3 Seconds, which means
  * that any events that happen within 3 seconds cannot be distinguished in ordering.
+ * @param debug set to true if you want to see detailed debug logs. Alternatively, set window.debugModeLogs global
+ * parameter to true.
  */
-function initSession(accountIDInit, appNameInit, analyticsURLInit, postIntervalSecondsInit, granularitySecInit) {
+function initSession(accountIDInit, appNameInit, analyticsURLInit, postIntervalSecondsInit, granularitySecInit, debug) {
     if(!accountIDInit || !appNameInit){
         throw new Error("accountID and appName must exist for init");
     }
     analyticsURL = analyticsURLInit? _stripTrailingSlash(analyticsURLInit) : DEFAULT_BASE_URL;
     accountID = accountIDInit;
     appName = appNameInit;
+    debugMode = debug || window["debugModeLogs"] || false;
     postIntervalSeconds = postIntervalSecondsInit || DEFAULT_POST_INTERVAL_SECONDS;
     granularitySec = granularitySecInit || DEFAULT_GRANULARITY_IN_SECONDS;
     postURL = analyticsURL + "/ingest";
