@@ -25,7 +25,7 @@
     "cover": "echo please open test/index.html in browser to run tests",
     "cover:unit": "echo please open test/index.html in browser to run tests",
     "cover:integ": "echo please open test/index.html in browser to run tests",
-    "build": "",
+    "build": "npm run minify",
     "minify": "echo creating minified package dist/analytics.min.js && mkdir -p dist && uglifyjs src/analytics.js --compress --mangle -o dist/analytics.min.js -c -m --source-map \"root='src/analytics.js',url='analytics.min.js.map'\"",
     "bumpPatchVersion": "npm --no-git-tag-version version patch",
     "bumpPatchVersionWithGitTag": "npm version patch",
