@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Analytics client demo</title>
+    <script src="../src/analytics.js"></script>
     <script type="module">
         // For production use cases, use url: https://unpkg.com/@aicore/core-analytics-client-lib/dist/analytics.min.js
-        // The below url is for development purposes only.
-        import {initSession, analyticsEvent} from "../src/analytics.js";
-        window.analyticsEvent = analyticsEvent;
+        // The above url is for development purposes only.
         window.debugModeLogs = true;
-        initSession("acc1", "testApp", "http://localhost:3000", 5, 1, true);
-        analyticsEvent("platform", "os", "linux");
+        analytics.initSession("acc1", "testApp", "http://localhost:3000", 5, 1, true);
+        analytics.event("platform", "os", "linux");
     </script>
 </head>
 <body>
