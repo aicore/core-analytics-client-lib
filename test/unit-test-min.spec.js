@@ -239,6 +239,8 @@ describe('core-analytics-client-lib `dist/analytics.min.js` minimised main tests
         };
         initSession("unitTestAcc2", "core-analytics-client-lib", undefined, 10, .1);
         await sleep(200);
+        let appConfig = getAppConfig();
+        chai.expect(appConfig.disabled).to.eql(true);
         analyticsEvent('ev1', 'cat1', 'sub1');
         analyticsEvent('ev1', 'cat2', 'sub1', 5);
         const event = getCurrentAnalyticsEvent();

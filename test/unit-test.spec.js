@@ -1,6 +1,7 @@
 // jshint ignore: start
 /*global describe, it, chai, beforeEach, afterEach*/
 
+// Open unit-test.html in browser with npm run serve to run tests.
 import {
     getCurrentAnalyticsEvent,
     initSession,
@@ -241,6 +242,8 @@ describe('core-analytics-client-lib `src/analytics.js` main tests', function () 
         await sleep(200);
         analyticsEvent('ev1', 'cat1', 'sub1');
         analyticsEvent('ev1', 'cat2', 'sub1', 5);
+        let appConfig = getAppConfig();
+        chai.expect(appConfig.disabled).to.eql(true);
         const event = getCurrentAnalyticsEvent();
         chai.expect(event.events).to.eql({});
     });
