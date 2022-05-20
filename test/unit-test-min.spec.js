@@ -61,13 +61,13 @@ describe('core-analytics-client-lib `dist/analytics.min.js` minimised main tests
     }
 
     it('should getCurrentAnalyticsEvent succeed after init', function () {
-        initSession("unitTestAcc1", "core-analytics-client-lib", undefined, undefined, undefined, true);
+        initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", undefined, undefined, true);
         const event = getCurrentAnalyticsEvent();
         _validateCurrentEvent(event);
     });
 
     it('should fail analyticsEvent on invalid arguments', function () {
-        initSession("unitTestAcc1", "core-analytics-client-lib", undefined, undefined, undefined, true);
+        initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", undefined, undefined, true);
         chai.expect(analyticsEvent).to.throw();
         chai.expect(()=>analyticsEvent('ev1', 'cat1', 'sub1', -1)).to.throw();
         chai.expect(()=>analyticsEvent('ev1', 'cat1', 'sub1', "10")).to.throw();
@@ -76,7 +76,7 @@ describe('core-analytics-client-lib `dist/analytics.min.js` minimised main tests
     });
 
     it('should analyticsEvent api succeed', async function () {
-        initSession("unitTestAcc1", "core-analytics-client-lib", undefined, 10, .1, true);
+        initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", 10, .1, true);
         analyticsEvent('ev1', 'cat1', 'sub1');
         analyticsEvent('ev1', 'cat2', 'sub1', 5);
         await sleep(200);
@@ -101,7 +101,7 @@ describe('core-analytics-client-lib `dist/analytics.min.js` minimised main tests
     });
 
     it('should analyticsEvent api succeed if count and value is given subsequently', async function () {
-        initSession("unitTestAcc1", "core-analytics-client-lib", undefined, 10, .1, true);
+        initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", 10, .1, true);
         analyticsEvent('ev1', 'cat1', 'sub1');
         analyticsEvent('ev1', 'cat2', 'sub1', 5);
         analyticsEvent('ev1', 'cat2', 'sub1', 5, 1);
@@ -149,7 +149,7 @@ describe('core-analytics-client-lib `dist/analytics.min.js` minimised main tests
                 }
             });
         };
-        initSession("unitTestAcc1", "core-analytics-client-lib", undefined, undefined, undefined, true);
+        initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", undefined, undefined, true);
         await sleep(100);
         let appConfig = getAppConfig();
         chai.expect(appConfig.postIntervalSeconds).to.eql(4646);
@@ -237,7 +237,7 @@ describe('core-analytics-client-lib `dist/analytics.min.js` minimised main tests
                 }
             });
         };
-        initSession("unitTestAcc2", "core-analytics-client-lib", undefined, 10, .1, true);
+        initSession("unitTestAcc2", "core-analytics-client-lib", "https://lols", 10, .1, true);
         await sleep(200);
         let appConfig = getAppConfig();
         chai.expect(appConfig.disabled).to.eql(true);
