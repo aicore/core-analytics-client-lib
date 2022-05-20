@@ -41,8 +41,7 @@ initSession(): Initialize the analytics session. It takes the following paramete
 events happening during this time period is aggregated to a count. The default granularity is 3 Seconds, which means
 that any events that happen within 3 seconds cannot be distinguished in ordering.
 * `analyticsURL` (_Optional_): Provide your own analytics server address if you self-hosted the server
-* `debug` (_Optional_):  set to true if you want to see detailed debug logs. Alternatively, set `window.debugModeLogs`
-global parameter to true to achieve the same effect.
+* `debug` (_Optional_):  set to true if you want to see detailed debug logs.
 
 ```javascript
 // Example for custom initSession where the analytics aggregated data 
@@ -51,10 +50,7 @@ global parameter to true to achieve the same effect.
 
 initSession("accountID", "appName", "https://localhost:3000", 600, 5);
 
-// To initSession in debug mode set EITHER: window.debugModeLogs or debug arg in init:
-window.debugModeLogs = true;
-initSession("accountID", "appName", "https://localhost:3000", 600, 5);
-// or
+// To initSession in debug mode set debug arg in init to true:
 initSession("accountID", "appName", "https://localhost:3000", 600, 5, true);
 ```
 
