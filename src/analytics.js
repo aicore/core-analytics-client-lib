@@ -225,8 +225,7 @@ function _stripTrailingSlash(url) {
  * @param granularitySecInit Optional: The smallest time period under which the events can be distinguished. Multiple
  * events happening during this time period is aggregated to a count. The default granularity is 3 Seconds, which means
  * that any events that happen within 3 seconds cannot be distinguished in ordering.
- * @param debug set to true if you want to see detailed debug logs. Alternatively, set window.debugModeLogs global
- * parameter to true.
+ * @param debug set to true if you want to see detailed debug logs.
  */
 function initSession(accountIDInit, appNameInit, analyticsURLInit, postIntervalSecondsInit, granularitySecInit, debug) {
     if(!accountIDInit || !appNameInit){
@@ -235,7 +234,7 @@ function initSession(accountIDInit, appNameInit, analyticsURLInit, postIntervalS
     analyticsURL = analyticsURLInit? _stripTrailingSlash(analyticsURLInit) : DEFAULT_BASE_URL;
     accountID = accountIDInit;
     appName = appNameInit;
-    debugMode = debug || window["debugModeLogs"] || false;
+    debugMode = debug || false;
     postIntervalSeconds = postIntervalSecondsInit || DEFAULT_POST_INTERVAL_SECONDS;
     granularitySec = granularitySecInit || DEFAULT_GRANULARITY_IN_SECONDS;
     postURL = analyticsURL + "/ingest";

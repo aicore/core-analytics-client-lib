@@ -9,7 +9,7 @@
         import {initSession, analyticsEvent} from "../src/analytics.js";
         window.analyticsEvent = analyticsEvent;
         window.debugModeLogs = true;
-        initSession("acc1", "testApp", "http://localhost:3000", 5, 1);
+        initSession("acc1", "testApp", "http://localhost:3000", 5, 1, true);
         analyticsEvent("platform", "os", "linux");
     </script>
 </head>
