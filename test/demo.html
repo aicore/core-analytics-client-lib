@@ -8,7 +8,7 @@
         // The below url is for development purposes only.
         import {initSession, analyticsEvent} from "../src/analytics.js";
         window.analyticsEvent = analyticsEvent;
-        initSession("acc1", "testApp", "http://localhost:3000");
+        initSession("acc1", "testApp", "http://localhost:3000", 5, 1);
         analyticsEvent("platform", "os", "linux");
     </script>
 </head>

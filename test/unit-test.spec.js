@@ -155,6 +155,7 @@ describe('core-analytics-client-lib `src/analytics.js` main tests', function () 
         chai.expect(appConfig.postIntervalSeconds).to.eql(4646);
         chai.expect(appConfig.granularitySec).to.eql(53);
         chai.expect(appConfig.analyticsURL).to.eql("https://lols");
+        chai.expect(appConfig.disabled).to.eql(false);
         chai.expect(appConfig.serverConfig.postIntervalSecondsInit).to.eql(4646);
         chai.expect(appConfig.serverConfig.granularitySecInit).to.eql(53);
         chai.expect(appConfig.serverConfig.analyticsURLInit).to.eql("https://lols");
@@ -185,6 +186,7 @@ describe('core-analytics-client-lib `src/analytics.js` main tests', function () 
         chai.expect(appConfig.granularitySec).to.eql(12);
         // Init URLs are  always server overriden
         chai.expect(appConfig.analyticsURL).to.eql("https://lols");
+        chai.expect(appConfig.disabled).to.eql(false);
         chai.expect(appConfig.serverConfig.postIntervalSecondsInit).to.eql(4646);
         chai.expect(appConfig.serverConfig.granularitySecInit).to.eql(53);
         chai.expect(appConfig.serverConfig.analyticsURLInit).to.eql("https://lols");
@@ -206,6 +208,7 @@ describe('core-analytics-client-lib `src/analytics.js` main tests', function () 
         chai.expect(appConfig.postIntervalSeconds).to.eql(600);
         chai.expect(appConfig.granularitySec).to.eql(3);
         chai.expect(appConfig.analyticsURL).to.eql("https://someURL");
+        chai.expect(appConfig.disabled).to.eql(false);
         chai.expect(appConfig.serverConfig).to.eql({});
     });
 
@@ -219,6 +222,26 @@ describe('core-analytics-client-lib `src/analytics.js` main tests', function () 
         chai.expect(appConfig.postIntervalSeconds).to.eql(600);
         chai.expect(appConfig.granularitySec).to.eql(3);
         chai.expect(appConfig.analyticsURL).to.eql("https://someURL");
+        chai.expect(appConfig.disabled).to.eql(false);
         chai.expect(appConfig.serverConfig).to.eql({});
+    });
+
+    it('should server config disable analytics', async function () {
+        window.fetch = function () {
+            return Promise.resolve({
+                "status": 200,
+                json: function () {
+                    return Promise.resolve({
+                        "disabled": true
+                    });
+                }
+            });
+        };
+        initSession("unitTestAcc2", "core-analytics-client-lib", undefined, 10, .1);
+        await sleep(200);
+        analyticsEvent('ev1', 'cat1', 'sub1');
+        analyticsEvent('ev1', 'cat2', 'sub1', 5);
+        const event = getCurrentAnalyticsEvent();
+        chai.expect(event.events).to.eql({});
     });
 });
