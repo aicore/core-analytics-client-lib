@@ -3,7 +3,7 @@
 // jshint ignore: start
 /*global localStorage, sessionStorage, crypto*/
 
-let accountID, appName, userID, sessionID, postIntervalSeconds, granularitySec, postURL;
+let accountID, appName, userID, sessionID, postIntervalSeconds, granularitySec, analyticsURL, postURL, serverConfig;
 const DEFAULT_GRANULARITY_IN_SECONDS = 3;
 const DEFAULT_RETRY_TIME_IN_SECONDS = 30;
 const DEFAULT_POST_INTERVAL_SECONDS = 600; // 10 minutes
@@ -17,6 +17,8 @@ let granularityTimer;
 let postTimer;
 let currentQuantisedTime = 0;
 
+//TODO: debug logs, analytics remote enable/disable
+
 if(IS_NODE_ENV){
     throw new Error("Node environment is not currently supported");
 }
@@ -28,7 +30,6 @@ function _createAnalyticsEvent() {
         appName: appName,
         uuid: userID,
         sessionID: sessionID,
-        granularitySec: granularitySec,
         unixTimestampUTC: +new Date(),
         numEventsTotal: 0,
         events: {}
@@ -82,6 +83,8 @@ function _retryPost(eventToSend) {
 function _postCurrentAnalyticsEvent(eventToSend) {
     if(!eventToSend){
         eventToSend = currentAnalyticsEvent;
+        currentQuantisedTime = 0;
+        _resetGranularityTimer();
         currentAnalyticsEvent = _createAnalyticsEvent();
     }
     if(eventToSend.numEventsTotal === 0 ){
@@ -111,7 +114,7 @@ function _postCurrentAnalyticsEvent(eventToSend) {
     });
 }
 
-function _setupTimers() {
+function _resetGranularityTimer() {
     if(granularityTimer){
         clearInterval(granularityTimer);
         granularityTimer = null;
@@ -119,7 +122,10 @@ function _setupTimers() {
     granularityTimer = setInterval(()=>{
         currentQuantisedTime = currentQuantisedTime + granularitySec;
     }, granularitySec*1000);
+}
 
+function _setupTimers() {
+    _resetGranularityTimer();
     if(postTimer){
         clearInterval(postTimer);
         postTimer = null;
@@ -127,29 +133,83 @@ function _setupTimers() {
     postTimer = setInterval(_postCurrentAnalyticsEvent, postIntervalSeconds*1000);
 }
 
+async function _getServerConfig() {
+    return new Promise((resolve, reject)=>{
+        let configURL = analyticsURL + `/getAppConfig?accountID=${accountID}&appName=${appName}`;
+        window.fetch(configURL).then(async res=>{
+            switch (res.status) {
+            case 200:
+                let serverResponse = await res.json();
+                resolve(serverResponse);
+                return;
+            case 400:
+                reject("Bad Request, check library version compatible?", res);
+                break;
+            default:
+                reject("analytics client: Could not update from remote config. Continuing with defaults.", res);
+            }
+        }).catch(err => {
+            reject("analytics client: Could not update from remote config. Continuing with defaults.", err);
+        });
+    });
+}
+
+/**
+ * Returns the analytics config for the app
+ * @returns {Promise<Object>}
+ */
+function getAppConfig() {
+    return {
+        accountID, appName,
+        uuid: userID, sessionID,
+        postIntervalSeconds, granularitySec, analyticsURL, serverConfig
+    };
+}
+
+async function _initFromRemoteConfig(postIntervalSecondsInit, granularitySecInit) {
+    serverConfig = await _getServerConfig();
+    if(serverConfig !== {}){
+        // User init overrides takes precedence over server overrides
+        postIntervalSeconds = postIntervalSecondsInit ||
+            serverConfig["postIntervalSecondsInit"] || DEFAULT_POST_INTERVAL_SECONDS;
+        granularitySec = granularitySecInit || serverConfig["granularitySecInit"] || DEFAULT_GRANULARITY_IN_SECONDS;
+        // For URLs, the server suggested URL takes precedence over user init values
+        analyticsURL = serverConfig["analyticsURLInit"] || analyticsURL || DEFAULT_BASE_URL;
+        _setupTimers();
+        console.log(`Init analytics Config from remote
+        postIntervalSeconds:${postIntervalSeconds}, granularitySec: ${granularitySec}, URL: ${analyticsURL}`);
+    }
+}
+
+function _stripTrailingSlash(url) {
+    return url.replace(/\/$/, "");
+}
+
 /**
  * Initialize the analytics session
  * @param accountIDInit Your analytics account id as configured in the server or core.ai analytics
  * @param appNameInit The app name to log the events against.
+ * @param analyticsURLInit Optional: Provide your own analytics server address if you self-hosted the server
  * @param postIntervalSecondsInit Optional: This defines the interval between sending analytics events to the server.
  * Default is 10 minutes
  * @param granularitySecInit Optional: The smallest time period under which the events can be distinguished. Multiple
  * events happening during this time period is aggregated to a count. The default granularity is 3 Seconds, which means
  * that any events that happen within 3 seconds cannot be distinguished in ordering.
- * @param postBaseURLInit Optional: Provide your own analytics server address if you self-hosted the server
  */
-function initSession(accountIDInit, appNameInit, postIntervalSecondsInit, granularitySecInit, postBaseURLInit) {
+function initSession(accountIDInit, appNameInit, analyticsURLInit, postIntervalSecondsInit, granularitySecInit) {
     if(!accountIDInit || !appNameInit){
         throw new Error("accountID and appName must exist for init");
     }
+    analyticsURL = analyticsURLInit? _stripTrailingSlash(analyticsURLInit) : DEFAULT_BASE_URL;
     accountID = accountIDInit;
     appName = appNameInit;
     postIntervalSeconds = postIntervalSecondsInit || DEFAULT_POST_INTERVAL_SECONDS;
     granularitySec = granularitySecInit || DEFAULT_GRANULARITY_IN_SECONDS;
-    postURL = (postBaseURLInit || DEFAULT_BASE_URL) + "/ingest";
+    postURL = analyticsURL + "/ingest";
     _setupIDs();
     currentAnalyticsEvent = _createAnalyticsEvent();
     _setupTimers();
+    _initFromRemoteConfig(postIntervalSecondsInit, granularitySecInit);
 }
 
 function _ensureAnalyticsEventExists(eventType, category, subCategory) {
@@ -226,5 +286,6 @@ function analyticsEvent(eventType, eventCategory, subCategory, eventCount=1, eve
 export {
     initSession,
     getCurrentAnalyticsEvent,
-    analyticsEvent
+    analyticsEvent,
+    getAppConfig
 };

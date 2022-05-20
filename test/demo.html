@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Analytics client demo</title>
+    <script type="module">
+        // For production use cases, use url: https://unpkg.com/@aicore/core-analytics-client-lib/dist/analytics.min.js
+        // The below url is for development purposes only.
+        import {initSession, analyticsEvent} from "../src/analytics.js";
+        window.analyticsEvent = analyticsEvent;
+        initSession("acc1", "testApp", "http://localhost:3000");
+        analyticsEvent("platform", "os", "linux");
+    </script>
+</head>
+<body>
+
+</body>
+</html>

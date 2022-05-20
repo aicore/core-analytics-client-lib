@@ -40,14 +40,14 @@ initSession(): Initialize the analytics session. It takes the following paramete
 * `granularitySec` (_Optional_): The smallest time period under which the events can be distinguished. Multiple
 events happening during this time period is aggregated to a count. The default granularity is 3 Seconds, which means
 that any events that happen within 3 seconds cannot be distinguished in ordering.
-* `postBaseURLInit` Optional: Provide your own analytics server address if you self-hosted the server
+* `analyticsURL` Optional: Provide your own analytics server address if you self-hosted the server
 
 ```javascript
 // Example for custom initSession where the analytics aggregated data 
 // is posted to custom server https://localhost:3000 every 600 secs
 // with a granularity(resolution) of 5 seconds.
 
-initSession("accountID", "appName", 600, 5, "https://localhost:3000");
+initSession("accountID", "appName", "https://localhost:3000", 600, 5);
 ```
 
 ## Raising analytics events
