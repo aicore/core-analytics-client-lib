@@ -16,8 +16,9 @@ let DEFAULT_BASE_URL = "https://analytics.core.ai";
 let granularityTimer;
 let postTimer;
 let currentQuantisedTime = 0;
+let disabled = false;
 
-//TODO: debug logs, analytics remote enable/disable
+//TODO: debug logs
 
 if(IS_NODE_ENV){
     throw new Error("Node environment is not currently supported");
@@ -81,6 +82,9 @@ function _retryPost(eventToSend) {
 }
 
 function _postCurrentAnalyticsEvent(eventToSend) {
+    if(disabled){
+        return;
+    }
     if(!eventToSend){
         eventToSend = currentAnalyticsEvent;
         currentQuantisedTime = 0;
@@ -106,7 +110,8 @@ function _postCurrentAnalyticsEvent(eventToSend) {
         if(res.status !== 400){ // we don't retry bad requests
             _retryPost(eventToSend);
         } else {
-            console.error("Bad Request, this is most likely a problem with the library, update to latest version.");
+            console.error("Analytics client: " +
+                "Bad Request, this is most likely a problem with the library, update to latest version.");
         }
     }).catch(res => {
         console.error(res);
@@ -114,21 +119,27 @@ function _postCurrentAnalyticsEvent(eventToSend) {
     });
 }
 
-function _resetGranularityTimer() {
+function _resetGranularityTimer(disable) {
     if(granularityTimer){
         clearInterval(granularityTimer);
         granularityTimer = null;
+    }
+    if(disable){
+        return;
     }
     granularityTimer = setInterval(()=>{
         currentQuantisedTime = currentQuantisedTime + granularitySec;
     }, granularitySec*1000);
 }
 
-function _setupTimers() {
-    _resetGranularityTimer();
+function _setupTimers(disable) {
+    _resetGranularityTimer(disable);
     if(postTimer){
         clearInterval(postTimer);
         postTimer = null;
+    }
+    if(disable){
+        return;
     }
     postTimer = setInterval(_postCurrentAnalyticsEvent, postIntervalSeconds*1000);
 }
@@ -160,7 +171,7 @@ async function _getServerConfig() {
  */
 function getAppConfig() {
     return {
-        accountID, appName,
+        accountID, appName, disabled,
         uuid: userID, sessionID,
         postIntervalSeconds, granularitySec, analyticsURL, serverConfig
     };
@@ -175,9 +186,10 @@ async function _initFromRemoteConfig(postIntervalSecondsInit, granularitySecInit
         granularitySec = granularitySecInit || serverConfig["granularitySecInit"] || DEFAULT_GRANULARITY_IN_SECONDS;
         // For URLs, the server suggested URL takes precedence over user init values
         analyticsURL = serverConfig["analyticsURLInit"] || analyticsURL || DEFAULT_BASE_URL;
-        _setupTimers();
-        console.log(`Init analytics Config from remote
-        postIntervalSeconds:${postIntervalSeconds}, granularitySec: ${granularitySec}, URL: ${analyticsURL}`);
+        disabled = serverConfig["disabled"] === true;
+        _setupTimers(disabled);
+        console.log(`Init analytics Config from remote. disabled: ${disabled}, URL: ${analyticsURL}
+        postIntervalSeconds:${postIntervalSeconds}, granularitySec: ${granularitySec} `);
     }
 }
 
@@ -262,6 +274,9 @@ function _updateExistingAnalyticsEvent(index, eventType, category, subCategory, 
  * @param eventValue (Optional) : A number value associated with the event. defaults to 0
  */
 function analyticsEvent(eventType, eventCategory, subCategory, eventCount=1, eventValue=0) {
+    if(disabled){
+        return;
+    }
     _validateEvent(eventType, eventCategory, subCategory, eventCount, eventValue);
     _ensureAnalyticsEventExists(eventType, eventCategory, subCategory);
     let events = currentAnalyticsEvent.events;
