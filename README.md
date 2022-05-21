@@ -39,6 +39,8 @@ in the `initAnalyticsSession` call below:
 ```
 This will create a global `analytics` variable which can be used to access the analytics APIs. 
 
+NB: The script is loaded async, so it will not block other js scripts. `analytics.event` api can be called anytime
+after the above code and need not wait for the script load to complete.
 
 ## Raising analytics events
 We can now start logging analytics events by calling `analytics.event` API.

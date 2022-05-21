@@ -30,6 +30,7 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
     const DEFAULT_RETRY_TIME_IN_SECONDS = 30;
     const DEFAULT_POST_INTERVAL_SECONDS = 600; // 10 minutes
     const USERID_LOCAL_STORAGE_KEY = 'aicore.analytics.userID';
+    const SESSION_ID_LOCAL_STORAGE_KEY = 'aicore.analytics.sessionID';
     const POST_LARGE_DATA_THRESHOLD_BYTES = 10000;
     let currentAnalyticsEvent = null;
     const IS_NODE_ENV = (typeof window === 'undefined');
@@ -95,10 +96,10 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
     }
 
     function _getOrCreateSessionID() {
-        let localSessionID = sessionStorage.getItem(USERID_LOCAL_STORAGE_KEY);
+        let localSessionID = sessionStorage.getItem(SESSION_ID_LOCAL_STORAGE_KEY);
         if(!localSessionID){
             localSessionID = Math.random().toString(36).substr(2, 10);
-            sessionStorage.setItem(USERID_LOCAL_STORAGE_KEY, localSessionID);
+            sessionStorage.setItem(SESSION_ID_LOCAL_STORAGE_KEY, localSessionID);
         }
         return localSessionID;
     }
