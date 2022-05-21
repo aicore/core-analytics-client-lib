@@ -1,12 +1,31 @@
 // GNU AGPL-3.0 License Copyright (c) 2021 - present core.ai . All rights reserved.
 
 // jshint ignore: start
-/*global localStorage, sessionStorage, crypto*/
+/*global localStorage, sessionStorage, crypto, analytics*/
 
-var analytics = {};
 
-function init() {
-    let accountID, appName, userID, sessionID, postIntervalSeconds, granularitySec, analyticsURL, postURL, serverConfig;
+if(!window.analytics){
+    window.analytics = {
+        _initData: []
+    };
+}
+
+/**
+ * Initialize the analytics session
+ * @param accountIDInit Your analytics account id as configured in the server or core.ai analytics
+ * @param appNameInit The app name to log the events against.
+ * @param analyticsURLInit Optional: Provide your own analytics server address if you self-hosted the server
+ * @param postIntervalSecondsInit Optional: This defines the interval between sending analytics events to the server.
+ * Default is 10 minutes
+ * @param granularitySecInit Optional: The smallest time period under which the events can be distinguished. Multiple
+ * events happening during this time period is aggregated to a count. The default granularity is 3 Seconds, which means
+ * that any events that happen within 3 seconds cannot be distinguished in ordering.
+ * @param debug set to true if you want to see detailed debug logs.
+ */
+function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
+    postIntervalSecondsInit, granularitySecInit, debug) {
+    let accountID, appName, userID, sessionID, postIntervalSeconds,
+        granularitySec, analyticsURL, postURL, serverConfig={};
     const DEFAULT_GRANULARITY_IN_SECONDS = 3;
     const DEFAULT_RETRY_TIME_IN_SECONDS = 30;
     const DEFAULT_POST_INTERVAL_SECONDS = 600; // 10 minutes
@@ -195,13 +214,13 @@ function init() {
         };
     }
 
-    async function _initFromRemoteConfig(postIntervalSecondsInit, granularitySecInit) {
+    async function _initFromRemoteConfig(postIntervalSecondsInitial, granularitySecInitial) {
         serverConfig = await _getServerConfig();
         if(serverConfig !== {}){
             // User init overrides takes precedence over server overrides
-            postIntervalSeconds = postIntervalSecondsInit ||
+            postIntervalSeconds = postIntervalSecondsInitial ||
                 serverConfig["postIntervalSecondsInit"] || DEFAULT_POST_INTERVAL_SECONDS;
-            granularitySec = granularitySecInit || serverConfig["granularitySecInit"] || DEFAULT_GRANULARITY_IN_SECONDS;
+            granularitySec = granularitySecInitial || serverConfig["granularitySecInit"] || DEFAULT_GRANULARITY_IN_SECONDS;
             // For URLs, the server suggested URL takes precedence over user init values
             analyticsURL = serverConfig["analyticsURLInit"] || analyticsURL || DEFAULT_BASE_URL;
             disabled = serverConfig["disabled"] === true;
@@ -216,35 +235,6 @@ function init() {
 
     function _stripTrailingSlash(url) {
         return url.replace(/\/$/, "");
-    }
-
-    /**
-     * Initialize the analytics session
-     * @param accountIDInit Your analytics account id as configured in the server or core.ai analytics
-     * @param appNameInit The app name to log the events against.
-     * @param analyticsURLInit Optional: Provide your own analytics server address if you self-hosted the server
-     * @param postIntervalSecondsInit Optional: This defines the interval between sending analytics events to the server.
-     * Default is 10 minutes
-     * @param granularitySecInit Optional: The smallest time period under which the events can be distinguished. Multiple
-     * events happening during this time period is aggregated to a count. The default granularity is 3 Seconds, which means
-     * that any events that happen within 3 seconds cannot be distinguished in ordering.
-     * @param debug set to true if you want to see detailed debug logs.
-     */
-    function initSession(accountIDInit, appNameInit, analyticsURLInit, postIntervalSecondsInit, granularitySecInit, debug) {
-        if(!accountIDInit || !appNameInit){
-            throw new Error("accountID and appName must exist for init");
-        }
-        analyticsURL = analyticsURLInit? _stripTrailingSlash(analyticsURLInit) : DEFAULT_BASE_URL;
-        accountID = accountIDInit;
-        appName = appNameInit;
-        debugMode = debug || false;
-        postIntervalSeconds = postIntervalSecondsInit || DEFAULT_POST_INTERVAL_SECONDS;
-        granularitySec = granularitySecInit || DEFAULT_GRANULARITY_IN_SECONDS;
-        postURL = analyticsURL + "/ingest";
-        _setupIDs();
-        currentAnalyticsEvent = _createAnalyticsEvent();
-        _setupTimers();
-        _initFromRemoteConfig(postIntervalSecondsInit, granularitySecInit);
     }
 
     function _ensureAnalyticsEventExists(eventType, category, subCategory) {
@@ -263,10 +253,10 @@ function init() {
             throw new Error("missing eventType or category or subCategory");
         }
         if(typeof(count)!== 'number' || count <0){
-            throw new Error("invalid count");
+            throw new Error("invalid count, count should be a positive number");
         }
         if(typeof(value)!== 'number'){
-            throw new Error("invalid value");
+            throw new Error("invalid value, value should be a number");
         }
     }
 
@@ -321,13 +311,35 @@ function init() {
         _updateExistingAnalyticsEvent(modificationIndex, eventType, eventCategory, subCategory, eventCount, eventValue);
     }
 
+    // Init Analytics
+    if(!accountIDInit || !appNameInit){
+        throw new Error("accountID and appName must exist for init");
+    }
+    analyticsURL = analyticsURLInit? _stripTrailingSlash(analyticsURLInit) : DEFAULT_BASE_URL;
+    accountID = accountIDInit;
+    appName = appNameInit;
+    debugMode = debug || false;
+    postIntervalSeconds = postIntervalSecondsInit || DEFAULT_POST_INTERVAL_SECONDS;
+    granularitySec = granularitySecInit || DEFAULT_GRANULARITY_IN_SECONDS;
+    postURL = analyticsURL + "/ingest";
+    _setupIDs();
+    currentAnalyticsEvent = _createAnalyticsEvent();
+    _setupTimers();
+    _initFromRemoteConfig(postIntervalSecondsInit, granularitySecInit);
+
+    // As analytics lib load is async, our loading scripts will push event data into initData array till the lib load
+    // is complete. Now as load is done, we need to push these pending analytics events. Assuming that the async load of
+    // the lib should mostly happen under a second, we should not lose any accuracy of event times within the initial
+    // 3-second granularity. For more precision use cases, load the lib sync.
+    for(let eventData of analytics._initData){
+        event(...eventData);
+    }
+    analytics._initData = [];
+
     // Private API for tests
     analytics._getCurrentAnalyticsEvent = _getCurrentAnalyticsEvent;
     analytics._getAppConfig = _getAppConfig;
 
     // Public API
-    analytics.initSession = initSession;
     analytics.event = event;
 }
-
-init();

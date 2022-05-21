@@ -3,12 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <title>Analytics client demo</title>
-    <script src="../src/analytics.js"></script>
 
-    <script type="module">
+    <!-- Global window.analytics object - core.ai analytics services -->
+    <script async src="../src/analytics.js"
+            onload="analyticsLibLoaded()"></script>
+    <script>
+        if(!window.analytics){ window.analytics = {
+            _initData : [], loadStartTime: new Date().getTime(),
+            event: function (){window.analytics._initData.push(arguments);}
+        };}
+        function analyticsLibLoaded() {
+            initAnalyticsSession('acc1', 'testApp', undefined, 5, 1, true);
+            analytics.event("core-analytics", "client-lib", "loadTime", (new Date().getTime())-analytics.loadStartTime);
+        }
+    </script>
+
+    <script>
         // For production use cases, use url: https://unpkg.com/@aicore/core-analytics-client-lib/dist/analytics.min.js
         // The above url is for development purposes only.
-        analytics.initSession("acc1", "testApp", "http://localhost:3000", 5, 1, true);
         analytics.event("platform", "os", "linux");
     </script>
 </head>
