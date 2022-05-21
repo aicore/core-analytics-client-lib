@@ -74,6 +74,37 @@ analytics.event("platform", "CPU", "coreCountsAndFrequencyMhz", 8, 2300);
 
 
 ## Advanced Usages
+
+### Pure JS loading instead of HTML scripts
+
+There may be cases where you would want to load the script from JS alone. For Eg. you
+may want to delay library loading till user consents GDPR. For such use cases, use the below code.
+
+```js
+function _initCoreAnalytics() {
+    // Load core analytics scripts
+    if(!window.analytics){ window.analytics = {
+        _initData: [], loadStartTime: new Date().getTime(),
+        event: function (){window.analytics._initData.push(arguments);}
+    };}
+    let script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.async = true;
+    script.onload = function(){
+        // replace `your_analytics_account_ID` and `appName` below with your values 
+        window.initAnalyticsSession('your_analytics_account_ID', 'appName'); // if you have a custom analytics server
+        window.analytics.event("core-analytics", "client-lib", "loadTime", 1,
+            (new Date().getTime())- window.analytics.loadStartTime);
+    };
+    script.src = 'https://unpkg.com/@aicore/core-analytics-client-lib/dist/analytics.min.js';
+    document.getElementsByTagName('head')[0].appendChild(script);
+}
+_initCoreAnalytics();
+```
+To load the library, just call `_initCoreAnalytics()` from JS. Note that you may not be able
+to use `analytics.event()` APIs before `_initCoreAnalytics()` call is made.
+
+### initAnalyticsSession: modify when, where and how analytics lib sends events
  If you want to modify how analytics library collects and sends information, it is recommended to do so
 with analytics server [accountConfig](https://github.com/aicore/Core-Analytics-Server#accountconfig-configuration).
 
