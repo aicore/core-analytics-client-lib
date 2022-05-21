@@ -1,5 +1,5 @@
 // jshint ignore: start
-/*global describe, it, chai, beforeEach, afterEach, analytics*/
+/*global describe, it, chai, beforeEach, afterEach, analytics, initAnalyticsSession*/
 
 // Open http://127.0.0.1:8000/test/unit-test.html in browser with `npm run serve` to run tests.
 /**
@@ -36,11 +36,7 @@ describe('core-analytics-client-lib main tests', function () {
     });
 
     it('should throw if accountID and appID missing in init', function () {
-        chai.expect(analytics.initSession).to.throw();
-    });
-
-    it('should _getCurrentAnalyticsEvent throw if not inited', function () {
-        chai.expect(analytics._getCurrentAnalyticsEvent).to.throw();
+        chai.expect(initAnalyticsSession).to.throw();
     });
 
     function _validateCurrentEvent(event, eventCount=0, expectedEvent={}, granularity=3) {
@@ -55,13 +51,13 @@ describe('core-analytics-client-lib main tests', function () {
     }
 
     it('should _getCurrentAnalyticsEvent succeed after init', function () {
-        analytics.initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", undefined, undefined, true);
+        initAnalyticsSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", undefined, undefined, true);
         const event = analytics._getCurrentAnalyticsEvent();
         _validateCurrentEvent(event);
     });
 
     it('should fail analyticsEvent on invalid arguments', function () {
-        analytics.initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", undefined, undefined, true);
+        initAnalyticsSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", undefined, undefined, true);
         chai.expect(analytics.event).to.throw();
         chai.expect(()=>analytics.event('ev1', 'cat1', 'sub1', -1)).to.throw();
         chai.expect(()=>analytics.event('ev1', 'cat1', 'sub1', "10")).to.throw();
@@ -70,7 +66,7 @@ describe('core-analytics-client-lib main tests', function () {
     });
 
     it('should analyticsEvent api succeed', async function () {
-        analytics.initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", 10, .1, true);
+        initAnalyticsSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", 10, .1, true);
         analytics.event('ev1', 'cat1', 'sub1');
         analytics.event('ev1', 'cat2', 'sub1', 5);
         await sleep(200);
@@ -95,7 +91,7 @@ describe('core-analytics-client-lib main tests', function () {
     });
 
     it('should analyticsEvent api succeed if count and value is given subsequently', async function () {
-        analytics.initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", 10, .1, true);
+        initAnalyticsSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", 10, .1, true);
         analytics.event('ev1', 'cat1', 'sub1');
         analytics.event('ev1', 'cat2', 'sub1', 5);
         analytics.event('ev1', 'cat2', 'sub1', 5, 1);
@@ -107,13 +103,13 @@ describe('core-analytics-client-lib main tests', function () {
             "ev1": {
                 "cat1": {
                     "sub1": {
-                        "time": [0.2],
+                        "time": [0],
                         "valueCount": [1]
                     }
                 },
                 "cat2": {
                     "sub1": {
-                        "time": [0.2, 0.4],
+                        "time": [0, 0.2],
                         "valueCount": [
                             {
                                 "0": 5,
@@ -143,7 +139,7 @@ describe('core-analytics-client-lib main tests', function () {
               }
           });
         };
-        analytics.initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", undefined, undefined, true);
+        initAnalyticsSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", undefined, undefined, true);
         await sleep(100);
         let appConfig = analytics._getAppConfig();
         chai.expect(appConfig.postIntervalSeconds).to.eql(4646);
@@ -172,7 +168,7 @@ describe('core-analytics-client-lib main tests', function () {
                 }
             });
         };
-        analytics.initSession("unitTestAcc1", "core-analytics-client-lib",
+        initAnalyticsSession("unitTestAcc1", "core-analytics-client-lib",
             "https://uyer", 45, 12, true);
         await sleep(100);
         let appConfig = analytics._getAppConfig();
@@ -196,7 +192,7 @@ describe('core-analytics-client-lib main tests', function () {
                 }
             });
         };
-        analytics.initSession("unitTestAcc1", "core-analytics-client-lib", "https://someURL", undefined, undefined, true);
+        initAnalyticsSession("unitTestAcc1", "core-analytics-client-lib", "https://someURL", undefined, undefined, true);
         await sleep(100);
         let appConfig = analytics._getAppConfig();
         chai.expect(appConfig.postIntervalSeconds).to.eql(600);
@@ -210,7 +206,7 @@ describe('core-analytics-client-lib main tests', function () {
         window.fetch = function () {
             return Promise.reject({});
         };
-        analytics.initSession("unitTestAcc1", "core-analytics-client-lib", "https://someURL", undefined, undefined, true);
+        initAnalyticsSession("unitTestAcc1", "core-analytics-client-lib", "https://someURL", undefined, undefined, true);
         await sleep(100);
         let appConfig = analytics._getAppConfig();
         chai.expect(appConfig.postIntervalSeconds).to.eql(600);
@@ -231,7 +227,7 @@ describe('core-analytics-client-lib main tests', function () {
                 }
             });
         };
-        analytics.initSession("unitTestAcc2", "core-analytics-client-lib", undefined, 10, .1, true);
+        initAnalyticsSession("unitTestAcc2", "core-analytics-client-lib", undefined, 10, .1, true);
         await sleep(200);
         analytics.event('ev1', 'cat1', 'sub1');
         analytics.event('ev1', 'cat2', 'sub1', 5);
