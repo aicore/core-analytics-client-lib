@@ -26,35 +26,10 @@ Embed the script in your HTML file :
 ```
 This will create a global `analytics` variable which can be used to access the analytics APIs. 
 
-## Initialize the analytics session.
-Call `analytics.initSession()` after loading the library. It takes the following parameters:
-
-* `accountID`: Your analytics account id as configured in the server or core.ai analytics
-* `appName`: The app name to log the events against. Eg: "phoenixCode"
-* `postIntervalSeconds` (_Optional_): This defines the interval between sending analytics events to the server. Default is 10 minutes
-* `granularitySec` (_Optional_): The smallest time period under which the events can be distinguished. Multiple
-events happening during this time period is aggregated to a count. The default granularity is 3 Seconds, which means
-that any events that happen within 3 seconds cannot be distinguished in ordering.
-* `analyticsURL` (_Optional_): Provide your own analytics server address if you self-hosted the server
-* `debug` (_Optional_):  set to true if you want to see detailed debug logs.
-
-### usageExample
-```javascript
-// Init with default values.
-analytics.initSession("accountID", "appName");
-
-// Example for custom initSession where the analytics aggregated data 
-// is posted to custom server https://localhost:3000 every 600 secs
-// with a granularity(resolution) of 5 seconds.
-analytics.initSession("accountID", "appName", "https://localhost:3000", 600, 5);
-
-// To initSession in debug mode set debug arg in init to true:
-analytics.initSession("accountID", "appName", "https://localhost:3000", 600, 5, true);
-```
 
 ## Raising analytics events
 Once `initSession` is called, we can now start logging analytics events by calling `analytics.event` API.
-The API registers an analytics event. The events will be aggregated and send to the analytics server periodically.
+The events will be aggregated and send to the analytics server periodically.
 
 ```javascript
 // analyticsEvent(eventType, eventCategory, subCategory, eventCount, eventValue);
@@ -79,8 +54,40 @@ analytics.event("platform", "CPU", "coreCountsAndFrequencyMhz", 8, 2300);
 * `eventCategory` - A string, required
 * `subCategory` - A string, required
 * `eventCount` (_Optional_) : A non-negative number indicating the number of times the event (or an event with a
-particular value if a value is specified) happened. defaults to 1.
+  particular value if a value is specified) happened. defaults to 1.
 * `eventValue` (_Optional_) : A number value associated with the event. defaults to 0
+
+
+## Advanced Usages
+ If you want to modify how analytics library collects and sends information, it is recommended to do so
+with analytics server [accountConfig](https://github.com/aicore/Core-Analytics-Server#accountconfig-configuration).
+
+Alternatively for one off development time uses, the behavior of the library can be configured
+during the initSession call. `analytics.initSession()` takes the following parameters:
+
+* `accountID`: Your analytics account id as configured in the server or core.ai analytics
+* `appName`: The app name to log the events against. Eg: "phoenixCode"
+* `postIntervalSeconds` (_Optional_): This defines the interval between sending analytics events to the server. Default is 10 minutes
+* `granularitySec` (_Optional_): The smallest time period under which the events can be distinguished. Multiple
+events happening during this time period is aggregated to a count. The default granularity is 3 Seconds, which means
+that any events that happen within 3 seconds cannot be distinguished in ordering.
+* `analyticsURL` (_Optional_): Provide your own analytics server address if you self-hosted the server
+* `debug` (_Optional_):  set to true if you want to see detailed debug logs.
+
+### usageExample
+```javascript
+// Init with default values and server controlled config.
+analytics.initSession("accountID", "appName");
+
+// Example for custom initSession where the analytics aggregated data 
+// is posted to custom server https://localhost:3000 every 600 secs
+// with a granularity(resolution) of 5 seconds.
+analytics.initSession("accountID", "appName", "https://localhost:3000", 600, 5);
+
+// To initSession in debug mode set debug arg in init to true. In debug mode, details logs
+// about analytics library events will be emitted.
+analytics.initSession("accountID", "appName", "https://localhost:3000", 600, 5, true);
+```
 
 # Contribute to core-analytics-client-lib
 

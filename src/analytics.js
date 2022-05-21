@@ -60,7 +60,7 @@ function init() {
         }
     }
 
-    function getCurrentAnalyticsEvent() {
+    function _getCurrentAnalyticsEvent() {
         _validateCurrentState();
         // return a clone
         return JSON.parse(JSON.stringify(currentAnalyticsEvent));
@@ -187,7 +187,7 @@ function init() {
      * Returns the analytics config for the app
      * @returns {Object}
      */
-    function getAppConfig() {
+    function _getAppConfig() {
         return {
             accountID, appName, disabled,
             uuid: userID, sessionID,
@@ -321,10 +321,13 @@ function init() {
         _updateExistingAnalyticsEvent(modificationIndex, eventType, eventCategory, subCategory, eventCount, eventValue);
     }
 
+    // Private API for tests
+    analytics._getCurrentAnalyticsEvent = _getCurrentAnalyticsEvent;
+    analytics._getAppConfig = _getAppConfig;
+
+    // Public API
     analytics.initSession = initSession;
-    analytics.getCurrentAnalyticsEvent = getCurrentAnalyticsEvent;
     analytics.event = event;
-    analytics.getAppConfig = getAppConfig;
 }
 
 init();
