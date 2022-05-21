@@ -20,15 +20,28 @@ events for [Core-Analytics-Server](https://github.com/aicore/Core-Analytics-Serv
 # Usage
 
 ## Load the Library
-Embed the script in your HTML file : 
+Embed the script in your HTML file and replace `your_analytics_account_ID` and `appName`
+in the `initAnalyticsSession` call below: 
 ```html
-<script src="https://unpkg.com/@aicore/core-analytics-client-lib/src/analytics.js"></script>
+<!-- Global window.analytics object - core.ai analytics services -->
+<script async src="https://unpkg.com/@aicore/core-analytics-client-lib/src/analytics.js"
+        onload="analyticsLibLoaded()"></script>
+<script>
+    if(!window.analytics){ window.analytics = {
+        _initData : [], loadStartTime: new Date().getTime(),
+        event: function (){window.analytics._initData.push(arguments);}
+    };}
+    function analyticsLibLoaded() {
+        initAnalyticsSession('your_analytics_account_ID', 'appName');
+        analytics.event("core-analytics", "client-lib", "loadTime", 1, (new Date().getTime())-analytics.loadStartTime);
+    }
+</script>
 ```
 This will create a global `analytics` variable which can be used to access the analytics APIs. 
 
 
 ## Raising analytics events
-Once `initSession` is called, we can now start logging analytics events by calling `analytics.event` API.
+We can now start logging analytics events by calling `analytics.event` API.
 The events will be aggregated and send to the analytics server periodically.
 
 ```javascript
@@ -63,7 +76,7 @@ analytics.event("platform", "CPU", "coreCountsAndFrequencyMhz", 8, 2300);
 with analytics server [accountConfig](https://github.com/aicore/Core-Analytics-Server#accountconfig-configuration).
 
 Alternatively for one off development time uses, the behavior of the library can be configured
-during the initSession call. `analytics.initSession()` takes the following parameters:
+during the `initAnalyticsSession` call. `initAnalyticsSession()` takes the following parameters:
 
 * `accountID`: Your analytics account id as configured in the server or core.ai analytics
 * `appName`: The app name to log the events against. Eg: "phoenixCode"
@@ -76,17 +89,22 @@ that any events that happen within 3 seconds cannot be distinguished in ordering
 
 ### usageExample
 ```javascript
-// Init with default values and server controlled config.
-analytics.initSession("accountID", "appName");
+// Init with default values and server controlled config. use the following `analyticsLibLoaded` function
+function analyticsLibLoaded() {
+    initAnalyticsSession('your_analytics_account_ID', 'appName');
+    analytics.event("core-analytics", "client-lib", "loadTime", 1, (new Date().getTime())-analytics.loadStartTime);
+}
+
+//Replace initAnalyticsSession in analyticsLibLoaded function for the below use cases.
 
 // Example for custom initSession where the analytics aggregated data 
 // is posted to custom server https://localhost:3000 every 600 secs
 // with a granularity(resolution) of 5 seconds.
-analytics.initSession("accountID", "appName", "https://localhost:3000", 600, 5);
+initAnalyticsSession("accountID", "appName", "https://localhost:3000", 600, 5);
 
 // To initSession in debug mode set debug arg in init to true. In debug mode, details logs
 // about analytics library events will be emitted.
-analytics.initSession("accountID", "appName", "https://localhost:3000", 600, 5, true);
+initAnalyticsSession("accountID", "appName", "https://localhost:3000", 600, 5, true);
 ```
 
 # Contribute to core-analytics-client-lib
