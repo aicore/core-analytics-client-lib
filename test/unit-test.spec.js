@@ -39,8 +39,8 @@ describe('core-analytics-client-lib main tests', function () {
         chai.expect(analytics.initSession).to.throw();
     });
 
-    it('should getCurrentAnalyticsEvent throw if not inited', function () {
-        chai.expect(analytics.getCurrentAnalyticsEvent).to.throw();
+    it('should _getCurrentAnalyticsEvent throw if not inited', function () {
+        chai.expect(analytics._getCurrentAnalyticsEvent).to.throw();
     });
 
     function _validateCurrentEvent(event, eventCount=0, expectedEvent={}, granularity=3) {
@@ -54,9 +54,9 @@ describe('core-analytics-client-lib main tests', function () {
         chai.expect(event.events).to.eql(expectedEvent);
     }
 
-    it('should getCurrentAnalyticsEvent succeed after init', function () {
+    it('should _getCurrentAnalyticsEvent succeed after init', function () {
         analytics.initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", undefined, undefined, true);
-        const event = analytics.getCurrentAnalyticsEvent();
+        const event = analytics._getCurrentAnalyticsEvent();
         _validateCurrentEvent(event);
     });
 
@@ -75,7 +75,7 @@ describe('core-analytics-client-lib main tests', function () {
         analytics.event('ev1', 'cat2', 'sub1', 5);
         await sleep(200);
         analytics.event('ev1', 'cat2', 'sub1', 2);
-        const event = analytics.getCurrentAnalyticsEvent();
+        const event = analytics._getCurrentAnalyticsEvent();
         _validateCurrentEvent(event, 3, {
             "ev1": {
                 "cat1": {
@@ -102,7 +102,7 @@ describe('core-analytics-client-lib main tests', function () {
         analytics.event('ev1', 'cat2', 'sub1', 2, 1);
         await sleep(200);
         analytics.event('ev1', 'cat2', 'sub1', 2);
-        const event = analytics.getCurrentAnalyticsEvent();
+        const event = analytics._getCurrentAnalyticsEvent();
         _validateCurrentEvent(event, 5, {
             "ev1": {
                 "cat1": {
@@ -145,7 +145,7 @@ describe('core-analytics-client-lib main tests', function () {
         };
         analytics.initSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", undefined, undefined, true);
         await sleep(100);
-        let appConfig = analytics.getAppConfig();
+        let appConfig = analytics._getAppConfig();
         chai.expect(appConfig.postIntervalSeconds).to.eql(4646);
         chai.expect(appConfig.granularitySec).to.eql(53);
         chai.expect(appConfig.analyticsURL).to.eql("https://lols");
@@ -175,7 +175,7 @@ describe('core-analytics-client-lib main tests', function () {
         analytics.initSession("unitTestAcc1", "core-analytics-client-lib",
             "https://uyer", 45, 12, true);
         await sleep(100);
-        let appConfig = analytics.getAppConfig();
+        let appConfig = analytics._getAppConfig();
         chai.expect(appConfig.postIntervalSeconds).to.eql(45);
         chai.expect(appConfig.granularitySec).to.eql(12);
         // Init URLs are  always server overriden
@@ -198,7 +198,7 @@ describe('core-analytics-client-lib main tests', function () {
         };
         analytics.initSession("unitTestAcc1", "core-analytics-client-lib", "https://someURL", undefined, undefined, true);
         await sleep(100);
-        let appConfig = analytics.getAppConfig();
+        let appConfig = analytics._getAppConfig();
         chai.expect(appConfig.postIntervalSeconds).to.eql(600);
         chai.expect(appConfig.granularitySec).to.eql(3);
         chai.expect(appConfig.analyticsURL).to.eql("https://someURL");
@@ -212,7 +212,7 @@ describe('core-analytics-client-lib main tests', function () {
         };
         analytics.initSession("unitTestAcc1", "core-analytics-client-lib", "https://someURL", undefined, undefined, true);
         await sleep(100);
-        let appConfig = analytics.getAppConfig();
+        let appConfig = analytics._getAppConfig();
         chai.expect(appConfig.postIntervalSeconds).to.eql(600);
         chai.expect(appConfig.granularitySec).to.eql(3);
         chai.expect(appConfig.analyticsURL).to.eql("https://someURL");
@@ -235,9 +235,9 @@ describe('core-analytics-client-lib main tests', function () {
         await sleep(200);
         analytics.event('ev1', 'cat1', 'sub1');
         analytics.event('ev1', 'cat2', 'sub1', 5);
-        let appConfig = analytics.getAppConfig();
+        let appConfig = analytics._getAppConfig();
         chai.expect(appConfig.disabled).to.eql(true);
-        const event = analytics.getCurrentAnalyticsEvent();
+        const event = analytics._getCurrentAnalyticsEvent();
         chai.expect(event.events).to.eql({});
     });
 });
