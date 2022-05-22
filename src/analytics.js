@@ -46,14 +46,20 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
         if(!debugMode){
             return;
         }
-        console.log(...args);
+        console.log("analytics client: ", ...args);
+    }
+
+    function debugInfo(...args) {
+        if(debugMode && window.analytics.debugInfoLogsEnable){
+            console.info("analytics client: ", ...args);
+        }
     }
 
     function debugError(...args) {
         if(!debugMode){
             return;
         }
-        console.error(...args);
+        console.error("analytics client: ", ...args);
     }
 
 
@@ -118,6 +124,39 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
         }, DEFAULT_RETRY_TIME_IN_SECONDS * 1000 * eventToSend.backoffCount);
     }
 
+    function _postEventWithRetry(eventToSend) {
+        let textToSend = JSON.stringify(eventToSend);
+        if(textToSend.length > POST_LARGE_DATA_THRESHOLD_BYTES){
+            console.warn(`Analytics event generated is very large at greater than ${textToSend.length}B. This 
+        typically means that you may be sending too many value events? .`);
+        }
+        debugLog("Sending Analytics data of length: ", textToSend.length, "B");
+        debugInfo("Sending data:", textToSend);
+        if(!window.navigator.onLine){
+            _retryPost(eventToSend);
+            // chrome shows all network failure requests in console. In offline mode, we don't want to bomb debug
+            // console with network failure messages for analytics. So we prevent network requests when offline.
+            return;
+        }
+        window.fetch(postURL, {
+            method: "POST",
+            headers: {'Content-Type': 'application/json'},
+            body: textToSend
+        }).then(res=>{
+            if(res.status === 200){
+                return;
+            }
+            if(res.status !== 400){ // we don't retry bad requests
+                _retryPost(eventToSend);
+            } else {
+                console.error("Bad Request, this is most likely a problem with the library, update to latest version.");
+            }
+        }).catch(res => {
+            debugError(res);
+            _retryPost(eventToSend);
+        });
+    }
+
     function _postCurrentAnalyticsEvent(eventToSend) {
         if(disabled){
             return;
@@ -131,30 +170,7 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
         if(eventToSend.numEventsTotal === 0 ){
             return;
         }
-        let textToSend = JSON.stringify(eventToSend);
-        if(textToSend.length > POST_LARGE_DATA_THRESHOLD_BYTES){
-            console.warn(`Analytics event generated is very large at greater than ${textToSend.length}B. This 
-        typically means that you may be sending too many value events? .`);
-        }
-        debugLog("Sending Analytics data of length: ", textToSend.length, "B");
-        window.fetch(postURL, {
-            method: "POST",
-            headers: {'Content-Type': 'application/json'},
-            body: textToSend
-        }).then(res=>{
-            if(res.status === 200){
-                return;
-            }
-            if(res.status !== 400){ // we don't retry bad requests
-                _retryPost(eventToSend);
-            } else {
-                console.error("Analytics client: " +
-                    "Bad Request, this is most likely a problem with the library, update to latest version.");
-            }
-        }).catch(res => {
-            debugError(res);
-            _retryPost(eventToSend);
-        });
+        _postEventWithRetry(eventToSend);
     }
 
     function _resetGranularityTimer(disable) {
@@ -183,7 +199,13 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
     }
 
     async function _getServerConfig() {
-        return new Promise((resolve, reject)=>{
+        return new Promise((resolve)=>{
+            if(!window.navigator.onLine){
+                resolve({});
+                // chrome shows all network failure requests in console. In offline mode, we don't want to bomb debug
+                // console with network failure messages for analytics. So we prevent network requests when offline.
+                return;
+            }
             let configURL = analyticsURL + `/getAppConfig?accountID=${accountID}&appName=${appName}`;
             window.fetch(configURL).then(async res=>{
                 switch (res.status) {
@@ -192,13 +214,16 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
                     resolve(serverResponse);
                     return;
                 case 400:
-                    reject("Bad Request, check library version compatible?", res);
+                    debugError("Bad Request, check library version compatible?", res);
+                    resolve({});
                     break;
                 default:
-                    reject("analytics client: Could not update from remote config. Continuing with defaults.", res);
+                    debugError("Could not update from remote config. Continuing with defaults.", res);
+                    resolve({});
                 }
             }).catch(err => {
-                reject("analytics client: Could not update from remote config. Continuing with defaults.", err);
+                debugError("Could not update from remote config. Continuing with defaults.", err);
+                resolve({});
             });
         });
     }
