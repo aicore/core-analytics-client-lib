@@ -113,11 +113,11 @@ during the `initAnalyticsSession` call. `initAnalyticsSession()` takes the follo
 
 * `accountID`: Your analytics account id as configured in the server or core.ai analytics
 * `appName`: The app name to log the events against. Eg: "phoenixCode"
-* `postIntervalSeconds` (_Optional_): This defines the interval between sending analytics events to the server. Default is 10 minutes
+* `analyticsURL` (_Optional_): Provide your own analytics server address if you self-hosted the server.
+* `postIntervalSeconds` (_Optional_): This defines the interval between sending analytics events to the server. Default is 1 minutes or server controlled.
 * `granularitySec` (_Optional_): The smallest time period under which the events can be distinguished. Multiple
-events happening during this time period is aggregated to a count. The default granularity is 3 Seconds, which means
-that any events that happen within 3 seconds cannot be distinguished in ordering.
-* `analyticsURL` (_Optional_): Provide your own analytics server address if you self-hosted the server
+events happening during this time period is aggregated to a count. The default granularity is 3 Seconds or server controlled,
+which means that any events that happen within 3 seconds cannot be distinguished in ordering.
 * `debug` (_Optional_):  set to true if you want to see detailed debug logs.
 
 #### usageExample

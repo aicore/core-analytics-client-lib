@@ -14,12 +14,12 @@ if(!window.analytics){
  * Initialize the analytics session
  * @param accountIDInit Your analytics account id as configured in the server or core.ai analytics
  * @param appNameInit The app name to log the events against.
- * @param analyticsURLInit Optional: Provide your own analytics server address if you self-hosted the server
+ * @param analyticsURLInit Optional: Provide your own analytics server address if you self-hosted the server.
  * @param postIntervalSecondsInit Optional: This defines the interval between sending analytics events to the server.
- * Default is 10 minutes
+ * Default is 1 minutes or server controlled.
  * @param granularitySecInit Optional: The smallest time period under which the events can be distinguished. Multiple
- * events happening during this time period is aggregated to a count. The default granularity is 3 Seconds, which means
- * that any events that happen within 3 seconds cannot be distinguished in ordering.
+ * events happening during this time period is aggregated to a count. The default granularity is 3 Seconds or server
+ * controlled, which means that any events that happen within 3 seconds cannot be distinguished in ordering.
  * @param debug set to true if you want to see detailed debug logs.
  */
 function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
@@ -28,7 +28,7 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
         granularitySec, analyticsURL, postURL, serverConfig={};
     const DEFAULT_GRANULARITY_IN_SECONDS = 3;
     const DEFAULT_RETRY_TIME_IN_SECONDS = 30;
-    const DEFAULT_POST_INTERVAL_SECONDS = 600; // 10 minutes
+    const DEFAULT_POST_INTERVAL_SECONDS = 60; // 1 minutes
     const USERID_LOCAL_STORAGE_KEY = 'aicore.analytics.userID';
     const SESSION_ID_LOCAL_STORAGE_KEY = 'aicore.analytics.sessionID';
     const POST_LARGE_DATA_THRESHOLD_BYTES = 10000;
