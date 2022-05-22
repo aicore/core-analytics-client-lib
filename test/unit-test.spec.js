@@ -69,7 +69,7 @@ describe('core-analytics-client-lib main tests', function () {
         initAnalyticsSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", 10, .1, true);
         analytics.event('ev1', 'cat1', 'sub1');
         analytics.event('ev1', 'cat2', 'sub1', 5);
-        await sleep(200);
+        await sleep(250);
         analytics.event('ev1', 'cat2', 'sub1', 2);
         const event = analytics._getCurrentAnalyticsEvent();
         _validateCurrentEvent(event, 3, {
@@ -96,7 +96,7 @@ describe('core-analytics-client-lib main tests', function () {
         analytics.event('ev1', 'cat2', 'sub1', 5);
         analytics.event('ev1', 'cat2', 'sub1', 5, 1);
         analytics.event('ev1', 'cat2', 'sub1', 2, 1);
-        await sleep(200);
+        await sleep(250);
         analytics.event('ev1', 'cat2', 'sub1', 2);
         const event = analytics._getCurrentAnalyticsEvent();
         _validateCurrentEvent(event, 5, {
@@ -126,7 +126,7 @@ describe('core-analytics-client-lib main tests', function () {
     it('should server override analytics config', async function () {
         window.fetch = function () {
           return Promise.resolve({
-              "status" : 200,
+              "status": 200,
               json: function () {
                   return Promise.resolve({
                       "postIntervalSecondsInit": 4646,
@@ -155,7 +155,7 @@ describe('core-analytics-client-lib main tests', function () {
     it('should not server override if user override specified in init analytics config', async function () {
         window.fetch = function () {
             return Promise.resolve({
-                "status" : 200,
+                "status": 200,
                 json: function () {
                     return Promise.resolve({
                         "postIntervalSecondsInit": 4646,

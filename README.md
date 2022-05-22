@@ -120,7 +120,7 @@ that any events that happen within 3 seconds cannot be distinguished in ordering
 * `analyticsURL` (_Optional_): Provide your own analytics server address if you self-hosted the server
 * `debug` (_Optional_):  set to true if you want to see detailed debug logs.
 
-### usageExample
+#### usageExample
 ```javascript
 // Init with default values and server controlled config. use the following `analyticsLibLoaded` function
 function analyticsLibLoaded() {
@@ -134,11 +134,21 @@ function analyticsLibLoaded() {
 // is posted to custom server https://localhost:3000 every 600 secs
 // with a granularity(resolution) of 5 seconds.
 initAnalyticsSession("accountID", "appName", "https://localhost:3000", 600, 5);
+```
 
+### Debug logs
+ If you want to see detailed logs on what is happening inside analytics lib, use the below code:
+```js
 // To initSession in debug mode set debug arg in init to true. In debug mode, details logs
 // about analytics library events will be emitted.
 initAnalyticsSession("accountID", "appName", "https://localhost:3000", 600, 5, true);
 ```
+
+To see info level logs that shows actual analytics data being sent to server, set the below property:
+```js 
+window.analytics.debugInfoLogsEnable = true;
+```
+
 
 # Contribute to core-analytics-client-lib
 
