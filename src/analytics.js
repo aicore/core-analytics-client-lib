@@ -10,6 +10,22 @@ if(!window.analytics){
     };
 }
 
+if (typeof window.crypto === 'undefined'){
+    window.crypto = {};
+}
+
+if (!('randomUUID' in crypto)){
+    // https://stackoverflow.com/a/2117523/2800218
+    // LICENSE: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+    crypto.randomUUID = function randomUUID() {
+        return (
+            [1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,
+            // eslint-disable-next-line no-bitwise
+            c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+        );
+    };
+}
+
 /**
  * Initialize the analytics session
  * @param accountIDInit Your analytics account id as configured in the server or core.ai analytics
@@ -23,7 +39,7 @@ if(!window.analytics){
  * @param debug set to true if you want to see detailed debug logs.
  */
 function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
-    postIntervalSecondsInit, granularitySecInit, debug) {
+                              postIntervalSecondsInit, granularitySecInit, debug) {
     let accountID, appName, userID, sessionID, postIntervalSeconds,
         granularitySec, analyticsURL, postURL, serverConfig={};
     const DEFAULT_GRANULARITY_IN_SECONDS = 3;
@@ -198,7 +214,7 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
         postTimer = setInterval(_postCurrentAnalyticsEvent, postIntervalSeconds*1000);
     }
 
-    async function _getServerConfig() {
+    function _getServerConfig() {
         return new Promise((resolve)=>{
             if(!window.navigator.onLine){
                 resolve({});
@@ -207,19 +223,23 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
                 return;
             }
             let configURL = analyticsURL + `/getAppConfig?accountID=${accountID}&appName=${appName}`;
-            window.fetch(configURL).then(async res=>{
+            window.fetch(configURL).then(res=>{
                 switch (res.status) {
-                case 200:
-                    let serverResponse = await res.json();
-                    resolve(serverResponse);
-                    return;
-                case 400:
-                    debugError("Bad Request, check library version compatible?", res);
-                    resolve({});
-                    break;
-                default:
-                    debugError("Could not update from remote config. Continuing with defaults.", res);
-                    resolve({});
+                    case 200:
+                        res.json().then(serverResponse =>{
+                            resolve(serverResponse);
+                        }).catch(err => {
+                            debugError("remote response invalid. Continuing with defaults.", err);
+                            resolve({});
+                        });
+                        return;
+                    case 400:
+                        debugError("Bad Request, check library version compatible?", res);
+                        resolve({});
+                        break;
+                    default:
+                        debugError("Could not update from remote config. Continuing with defaults.", res);
+                        resolve({});
                 }
             }).catch(err => {
                 debugError("Could not update from remote config. Continuing with defaults.", err);
@@ -240,27 +260,29 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
         };
     }
 
-    async function _initFromRemoteConfig(postIntervalSecondsInitial, granularitySecInitial) {
-        serverConfig = await _getServerConfig();
-        if(serverConfig !== {}){
-            // User init overrides takes precedence over server overrides
-            postIntervalSeconds = postIntervalSecondsInitial ||
-                serverConfig["postIntervalSecondsInit"] || DEFAULT_POST_INTERVAL_SECONDS;
-            granularitySec = granularitySecInitial || serverConfig["granularitySecInit"] || DEFAULT_GRANULARITY_IN_SECONDS;
-            // For URLs, the server suggested URL takes precedence over user init values
-            analyticsURL = serverConfig["analyticsURLInit"] || analyticsURL || DEFAULT_BASE_URL;
-            disabled = serverConfig["disabled"] === true;
-            _setupTimers(disabled);
-            debugLog(`Init analytics Config from remote. disabled: ${disabled}
+    function _initFromRemoteConfig(postIntervalSecondsInitial, granularitySecInitial) {
+        _getServerConfig().then(updatedServerConfig =>{
+            if(serverConfig !== {}){
+                serverConfig = updatedServerConfig;
+                // User init overrides takes precedence over server overrides
+                postIntervalSeconds = postIntervalSecondsInitial ||
+                    serverConfig["postIntervalSecondsInit"] || DEFAULT_POST_INTERVAL_SECONDS;
+                granularitySec = granularitySecInitial || serverConfig["granularitySecInit"] || DEFAULT_GRANULARITY_IN_SECONDS;
+                // For URLs, the server suggested URL takes precedence over user init values
+                analyticsURL = serverConfig["analyticsURLInit"] || analyticsURL || DEFAULT_BASE_URL;
+                disabled = serverConfig["disabled"] === true;
+                _setupTimers(disabled);
+                debugLog(`Init analytics Config from remote. disabled: ${disabled}
         postIntervalSeconds:${postIntervalSeconds}, granularitySec: ${granularitySec} ,URL: ${analyticsURL}`);
-            if(disabled){
-                console.warn(`Core Analytics is disabled from the server for app: ${accountID}:${appName}`);
+                if(disabled){
+                    console.warn(`Core Analytics is disabled from the server for app: ${accountID}:${appName}`);
+                }
             }
-        }
+        });
     }
 
     function _stripTrailingSlash(url) {
-        return url.replace(/\/$/, "");
+        return url.toString().replace(/\/$/, "");
     }
 
     function _ensureAnalyticsEventExists(eventType, category, subCategory) {
