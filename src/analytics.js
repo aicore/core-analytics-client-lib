@@ -39,7 +39,7 @@ if (!('randomUUID' in crypto)){
  * @param debug set to true if you want to see detailed debug logs.
  */
 function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
-                              postIntervalSecondsInit, granularitySecInit, debug) {
+    postIntervalSecondsInit, granularitySecInit, debug) {
     let accountID, appName, userID, sessionID, postIntervalSeconds,
         granularitySec, analyticsURL, postURL, serverConfig={};
     const DEFAULT_GRANULARITY_IN_SECONDS = 3;
@@ -225,21 +225,21 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
             let configURL = analyticsURL + `/getAppConfig?accountID=${accountID}&appName=${appName}`;
             window.fetch(configURL).then(res=>{
                 switch (res.status) {
-                    case 200:
-                        res.json().then(serverResponse =>{
-                            resolve(serverResponse);
-                        }).catch(err => {
-                            debugError("remote response invalid. Continuing with defaults.", err);
-                            resolve({});
-                        });
-                        return;
-                    case 400:
-                        debugError("Bad Request, check library version compatible?", res);
+                case 200:
+                    res.json().then(serverResponse =>{
+                        resolve(serverResponse);
+                    }).catch(err => {
+                        debugError("remote response invalid. Continuing with defaults.", err);
                         resolve({});
-                        break;
-                    default:
-                        debugError("Could not update from remote config. Continuing with defaults.", res);
-                        resolve({});
+                    });
+                    return;
+                case 400:
+                    debugError("Bad Request, check library version compatible?", res);
+                    resolve({});
+                    break;
+                default:
+                    debugError("Could not update from remote config. Continuing with defaults.", res);
+                    resolve({});
                 }
             }).catch(err => {
                 debugError("Could not update from remote config. Continuing with defaults.", err);
@@ -290,8 +290,10 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
         events[eventType] = events[eventType] || {};
         events[eventType][category] = events[eventType][category] || {};
         events[eventType][category][subCategory] = events[eventType][category][subCategory] || {
-            time: [], // quantised time
-            valueCount: [] // value and count array, If a single value, then it is count, else object {"val1":count1, ...}
+            // quantised time
+            time: [],
+            // value and count array, If a single value, then it is count, else object {"val1":count1, ...}
+            valueCount: []
         };
     }
 

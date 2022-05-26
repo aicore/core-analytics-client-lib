@@ -195,7 +195,7 @@ describe('core-analytics-client-lib main tests', function () {
         initAnalyticsSession("unitTestAcc1", "core-analytics-client-lib", "https://someURL", undefined, undefined, true);
         await sleep(100);
         let appConfig = analytics._getAppConfig();
-        chai.expect(appConfig.postIntervalSeconds).to.eql(600);
+        chai.expect(appConfig.postIntervalSeconds).to.eql(60);
         chai.expect(appConfig.granularitySec).to.eql(3);
         chai.expect(appConfig.analyticsURL).to.eql("https://someURL");
         chai.expect(appConfig.disabled).to.eql(false);
@@ -209,7 +209,7 @@ describe('core-analytics-client-lib main tests', function () {
         initAnalyticsSession("unitTestAcc1", "core-analytics-client-lib", "https://someURL", undefined, undefined, true);
         await sleep(100);
         let appConfig = analytics._getAppConfig();
-        chai.expect(appConfig.postIntervalSeconds).to.eql(600);
+        chai.expect(appConfig.postIntervalSeconds).to.eql(60);
         chai.expect(appConfig.granularitySec).to.eql(3);
         chai.expect(appConfig.analyticsURL).to.eql("https://someURL");
         chai.expect(appConfig.disabled).to.eql(false);
