@@ -6,7 +6,8 @@
 
 if(!window.analytics){
     window.analytics = {
-        _initData: []
+        _initData: [],
+        debugMode: false
     };
 }
 
@@ -36,10 +37,9 @@ if (!('randomUUID' in crypto)){
  * @param granularitySecInit Optional: The smallest time period under which the events can be distinguished. Multiple
  * events happening during this time period is aggregated to a count. The default granularity is 3 Seconds or server
  * controlled, which means that any events that happen within 3 seconds cannot be distinguished in ordering.
- * @param debug set to true if you want to see detailed debug logs.
  */
 function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
-    postIntervalSecondsInit, granularitySecInit, debug) {
+    postIntervalSecondsInit, granularitySecInit) {
     let accountID, appName, userID, sessionID, postIntervalSeconds,
         granularitySec, analyticsURL, postURL, serverConfig={};
     const DEFAULT_GRANULARITY_IN_SECONDS = 3;
@@ -56,23 +56,22 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
     let postTimer;
     let currentQuantisedTime = 0;
     let disabled = false;
-    let debugMode = false;
 
     function debugLog(...args) {
-        if(!debugMode){
+        if(!window.analytics.debugMode){
             return;
         }
         console.log("analytics client: ", ...args);
     }
 
     function debugInfo(...args) {
-        if(debugMode && window.analytics.debugInfoLogsEnable){
+        if(window.analytics.debugMode && window.analytics.debugInfoLogsEnable){
             console.info("analytics client: ", ...args);
         }
     }
 
     function debugError(...args) {
-        if(!debugMode){
+        if(!window.analytics.debugMode){
             return;
         }
         console.error("analytics client: ", ...args);
@@ -368,7 +367,6 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
     analyticsURL = analyticsURLInit? _stripTrailingSlash(analyticsURLInit) : DEFAULT_BASE_URL;
     accountID = accountIDInit;
     appName = appNameInit;
-    debugMode = debug || false;
     postIntervalSeconds = postIntervalSecondsInit || DEFAULT_POST_INTERVAL_SECONDS;
     granularitySec = granularitySecInit || DEFAULT_GRANULARITY_IN_SECONDS;
     postURL = analyticsURL + "/ingest";

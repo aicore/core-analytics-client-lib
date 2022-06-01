@@ -118,7 +118,6 @@ during the `initAnalyticsSession` call. `initAnalyticsSession()` takes the follo
 * `granularitySec` (_Optional_): The smallest time period under which the events can be distinguished. Multiple
 events happening during this time period is aggregated to a count. The default granularity is 3 Seconds or server controlled,
 which means that any events that happen within 3 seconds cannot be distinguished in ordering.
-* `debug` (_Optional_):  set to true if you want to see detailed debug logs.
 
 #### usageExample
 ```javascript
@@ -139,12 +138,12 @@ initAnalyticsSession("accountID", "appName", "https://localhost:3000", 600, 5);
 ### Debug logs
  If you want to see detailed logs on what is happening inside analytics lib, use the below code:
 ```js
-// To initSession in debug mode set debug arg in init to true. In debug mode, details logs
-// about analytics library events will be emitted.
-initAnalyticsSession("accountID", "appName", "https://localhost:3000", 600, 5, true);
+// Just before initAnalyticsSession call, set or unset window.analytics.debugMode
+window.analytics.debugMode = true;
+initAnalyticsSession("accountID", "appName");
 ```
 
-To see info level logs that shows actual analytics data being sent to server, set the below property:
+To see info level logs that shows actual analytics data being sent to server, set or unset the below property:
 ```js 
 window.analytics.debugInfoLogsEnable = true;
 ```
@@ -159,7 +158,7 @@ Since this is a pure JS template project, build command just runs test with cove
 
 # Before raising a pull request, run release script and add the generated
 # minified files in dist folder to commits .
-# WARNING!!!: If the minified files are not checkedin git push will fail. 
+# WARNING!!!: If the minified files are not checked in git push will fail. 
 > npm run release
 ```
 
