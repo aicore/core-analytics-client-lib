@@ -14,7 +14,8 @@
         };}
         function analyticsLibLoaded() {
             // initAnalyticsSession('acc1', 'testApp'); // for default
-            initAnalyticsSession('acc1', 'testApp', "http://localhost:3000", 5, 1, true); // if you have a custom analytics server
+            window.analytics.debugMode = true;
+            initAnalyticsSession('acc1', 'testApp', "http://localhost:3000", 5, 1); // if you have a custom analytics server
             // see https://github.com/aicore/Core-Analytics-Server if you want to setup a custom analytics server.
             analytics.event("core-analytics", "client-lib", "loadTime", 1, (new Date().getTime())-analytics.loadStartTime);
         }
