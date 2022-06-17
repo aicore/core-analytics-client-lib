@@ -143,12 +143,6 @@ window.analytics.debugMode = true;
 initAnalyticsSession("accountID", "appName");
 ```
 
-To see info level logs that shows actual analytics data being sent to server, set or unset the below property:
-```js 
-window.analytics.debugInfoLogsEnable = true;
-```
-
-
 # Contribute to core-analytics-client-lib
 
 ## Building

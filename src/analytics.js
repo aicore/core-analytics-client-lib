@@ -65,7 +65,7 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
     }
 
     function debugInfo(...args) {
-        if(window.analytics.debugMode && window.analytics.debugInfoLogsEnable){
+        if(window.analytics.debugMode){
             console.info("analytics client: ", ...args);
         }
     }
@@ -146,7 +146,7 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
         typically means that you may be sending too many value events? .`);
         }
         debugLog("Sending Analytics data of length: ", textToSend.length, "B");
-        debugInfo("Sending data:", textToSend);
+        debugInfo("Sending data:", eventToSend);
         if(!window.navigator.onLine){
             _retryPost(eventToSend);
             // chrome shows all network failure requests in console. In offline mode, we don't want to bomb debug
