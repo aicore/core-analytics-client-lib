@@ -33,7 +33,7 @@ in the `initAnalyticsSession` call below:
     };}
     function analyticsLibLoaded() {
         initAnalyticsSession('your_analytics_account_ID', 'appName');
-        analytics.event("core-analytics", "client-lib", "loadTime", 1, (new Date().getTime())-analytics.loadStartTime);
+        analytics.valueEvent("core-analytics", "client-lib", "loadTime", (new Date().getTime())-analytics.loadStartTime);
     }
 </script>
 ```
@@ -43,34 +43,56 @@ NB: The script is loaded async, so it will not block other js scripts. `analytic
 after the above code and need not wait for the script load to complete.
 
 ## Raising analytics events
-We can now start logging analytics events by calling `analytics.event` API.
-The events will be aggregated and send to the analytics server periodically.
+Events are aggregated and sent to the analytics server periodically.
+Two APIs are available depending on your use case:
+
+### `analytics.countEvent` - Count occurrences
+Use this to track how many times something happens.
 
 ```javascript
-// analyticsEvent(eventType, eventCategory, subCategory, eventCount, eventValue);
+// countEvent(eventType, eventCategory, subCategory, eventCount)
 
-// Eg: event without counts and values
-analytics.event("platform", "os", "linux");
+// Count a single occurrence
+analytics.countEvent("platform", "os", "linux");
 
-// Eg: event with count, here it logs that html file is opened 100 times
-analytics.event("file", "opened", "html", 100);
-
-// Eg: event with count and value, here it logs that the startup time is 250 milliseconds. 
-// Note that the value is unitless from analytics perspective. unit is deduced from subCategory name
-analytics.event("platform", "performance", "startupTimeMs", 1, 250);
-
-// Eg: event with fractional value.
-analytics.event("platform", "CPU", "utilization", 1, .45);
-// Eg. Here we register that the system has 8 cores with each core having 2300MHz frequency.
-analytics.event("platform", "CPU", "coreCountsAndFrequencyMhz", 8, 2300);
+// Count multiple occurrences at once (e.g., html file opened 100 times)
+analytics.countEvent("file", "opened", "html", 100);
 ```
-### API parameters
+
+#### Parameters
 * `eventType` - A string, required
 * `eventCategory` - A string, required
 * `subCategory` - A string, required
-* `eventCount` (_Optional_) : A non-negative number indicating the number of times the event (or an event with a
-  particular value if a value is specified) happened. defaults to 1.
-* `eventValue` (_Optional_) : A number value associated with the event. defaults to 0
+* `eventCount` (_Optional_) : A non-negative number indicating the number of times the event happened. Defaults to 1.
+
+### `analytics.valueEvent` - Track values
+Use this to measure quantities like latencies, durations, sizes, or anything where you need
+running averages and distributions.
+
+```javascript
+// valueEvent(eventType, eventCategory, subCategory, eventValue, count)
+
+// Track startup time of 250 milliseconds
+// Note that the value is unitless from analytics perspective. Unit is deduced from subCategory name.
+analytics.valueEvent("platform", "performance", "startupTimeMs", 250);
+
+// Track fractional values (e.g., CPU utilization)
+analytics.valueEvent("platform", "CPU", "utilization", .45);
+
+// Track that a system has 8 cores with each core having 2300MHz frequency
+analytics.valueEvent("platform", "CPU", "coreCountsAndFrequencyMhz", 2300, 8);
+```
+
+#### Parameters
+* `eventType` - A string, required
+* `eventCategory` - A string, required
+* `subCategory` - A string, required
+* `eventValue` (_Optional_) : A numeric value associated with the event. Defaults to 0.
+* `count` (_Optional_) : A non-negative number indicating how many times this value occurred. Defaults to 1.
+
+### Deprecated: `analytics.event`
+The legacy `analytics.event(eventType, eventCategory, subCategory, eventCount, eventValue)` API is still
+available for backwards compatibility but is deprecated. Please migrate to `countEvent` or `valueEvent`.
 
 
 ## Advanced Usages
@@ -91,9 +113,9 @@ function _initCoreAnalytics() {
     script.type = 'text/javascript';
     script.async = true;
     script.onload = function(){
-        // replace `your_analytics_account_ID` and `appName` below with your values 
+        // replace `your_analytics_account_ID` and `appName` below with your values
         window.initAnalyticsSession('your_analytics_account_ID', 'appName'); // if you have a custom analytics server
-        window.analytics.event("core-analytics", "client-lib", "loadTime", 1,
+        window.analytics.valueEvent("core-analytics", "client-lib", "loadTime",
             (new Date().getTime())- window.analytics.loadStartTime);
     };
     script.src = 'https://unpkg.com/@aicore/core-analytics-client-lib/dist/analytics.min.js';
@@ -124,7 +146,7 @@ which means that any events that happen within 3 seconds cannot be distinguished
 // Init with default values and server controlled config. use the following `analyticsLibLoaded` function
 function analyticsLibLoaded() {
     initAnalyticsSession('your_analytics_account_ID', 'appName');
-    analytics.event("core-analytics", "client-lib", "loadTime", 1, (new Date().getTime())-analytics.loadStartTime);
+    analytics.valueEvent("core-analytics", "client-lib", "loadTime", (new Date().getTime())-analytics.loadStartTime);
 }
 
 //Replace initAnalyticsSession in analyticsLibLoaded function for the below use cases.
