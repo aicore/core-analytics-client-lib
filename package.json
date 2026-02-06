@@ -1,6 +1,6 @@
 {
   "name": "@aicore/core-analytics-client-lib",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Analytics client library for https://github.com/aicore/Core-Analytics-Server",
   "main": "dist/analytics.min.js",
   "type": "module",

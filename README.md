@@ -28,8 +28,10 @@ in the `initAnalyticsSession` call below:
         onload="analyticsLibLoaded()"></script>
 <script>
     if(!window.analytics){ window.analytics = {
-        _initData : [], loadStartTime: new Date().getTime(),
-        event: function (){window.analytics._initData.push(arguments);}
+        _initData: [], loadStartTime: new Date().getTime(),
+        event: function (){window.analytics._initData.push(arguments);},
+        countEvent: function(t,c,s,n){window.analytics._initData.push([t,c,s,n||1,0]);},
+        valueEvent: function(t,c,s,v,n){window.analytics._initData.push([t,c,s,n||1,v||0]);}
     };}
     function analyticsLibLoaded() {
         initAnalyticsSession('your_analytics_account_ID', 'appName');
@@ -39,8 +41,8 @@ in the `initAnalyticsSession` call below:
 ```
 This will create a global `analytics` variable which can be used to access the analytics APIs. 
 
-NB: The script is loaded async, so it will not block other js scripts. `analytics.event` api can be called anytime
-after the above code and need not wait for the script load to complete.
+NB: The script is loaded async, so it will not block other js scripts. `analytics.countEvent` and `analytics.valueEvent`
+APIs can be called anytime after the above code and need not wait for the script load to complete.
 
 ## Raising analytics events
 Events are aggregated and sent to the analytics server periodically.
@@ -107,7 +109,9 @@ function _initCoreAnalytics() {
     // Load core analytics scripts
     if(!window.analytics){ window.analytics = {
         _initData: [], loadStartTime: new Date().getTime(),
-        event: function (){window.analytics._initData.push(arguments);}
+        event: function (){window.analytics._initData.push(arguments);},
+        countEvent: function(t,c,s,n){window.analytics._initData.push([t,c,s,n||1,0]);},
+        valueEvent: function(t,c,s,v,n){window.analytics._initData.push([t,c,s,n||1,v||0]);}
     };}
     let script = document.createElement('script');
     script.type = 'text/javascript';
