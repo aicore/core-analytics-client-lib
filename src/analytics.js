@@ -311,16 +311,17 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
 
     function _updateExistingAnalyticsEvent(index, eventType, category, subCategory, count, newValue) {
         let events = currentAnalyticsEvent.events;
-        const storedValueIsCount = typeof(events[eventType][category][subCategory]["valueCount"][index]) === 'number';
+        const eventItem = events[eventType][category][subCategory];
+        const storedValueIsCount = typeof(eventItem.valueCount[index]) === 'number';
         if(storedValueIsCount && newValue === 0){
-            events[eventType][category][subCategory]["valueCount"][index] += count;
+            eventItem.valueCount[index] += count;
         } else if(storedValueIsCount && newValue !== 0){
             let newValueCount = {};
             newValueCount[newValue] = count;
-            newValueCount[0] = events[eventType][category][subCategory]["valueCount"][index];
-            events[eventType][category][subCategory]["valueCount"][index] = newValueCount;
+            newValueCount[0] = eventItem.valueCount[index];
+            eventItem.valueCount[index] = newValueCount;
         } else if(!storedValueIsCount){
-            let storedValueObject = events[eventType][category][subCategory]["valueCount"][index];
+            let storedValueObject = eventItem.valueCount[index];
             storedValueObject[newValue] = (storedValueObject[newValue] || 0) + count;
         }
         currentAnalyticsEvent.numEventsTotal += 1;
@@ -342,22 +343,51 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
         _validateEvent(eventType, eventCategory, subCategory, eventCount, eventValue);
         _ensureAnalyticsEventExists(eventType, eventCategory, subCategory);
         let events = currentAnalyticsEvent.events;
-        let timeArray = events[eventType][eventCategory][subCategory]["time"];
+        const eventItem = events[eventType][eventCategory][subCategory];
+        let timeArray = eventItem.time;
         let lastTime = timeArray.length>0? timeArray[timeArray.length-1] : null;
         if(lastTime !== currentQuantisedTime){
-            events[eventType][eventCategory][subCategory]["time"].push(currentQuantisedTime);
+            timeArray.push(currentQuantisedTime);
             if(eventValue===0){
-                events[eventType][eventCategory][subCategory]["valueCount"].push(eventCount);
+                eventItem.valueCount.push(eventCount);
             } else {
                 let valueCount = {};
                 valueCount[eventValue] = eventCount;
-                events[eventType][eventCategory][subCategory]["valueCount"].push(valueCount);
+                eventItem.valueCount.push(valueCount);
             }
             currentAnalyticsEvent.numEventsTotal += 1;
             return;
         }
-        let modificationIndex = events[eventType][eventCategory][subCategory]["valueCount"].length -1;
+        let modificationIndex = eventItem.valueCount.length - 1;
         _updateExistingAnalyticsEvent(modificationIndex, eventType, eventCategory, subCategory, eventCount, eventValue);
+    }
+
+    /**
+     * Counts the occurrence of a specific event and logs its details.
+     *
+     * @param {string} eventType - The type of the event to be counted.
+     * @param {string} eventCategory - The primary category of the event.
+     * @param {string} subCategory - The subcategory of the event.
+     * @param {number} [eventCount=1] - The number of occurrences to count. Defaults to 1 if not provided.
+     * @return {*} The result of the event logging function.
+     */
+    function countEvent(eventType, eventCategory, subCategory, eventCount = 1) {
+        return event(eventType, eventCategory, subCategory, eventCount, 0);
+    }
+
+    /**
+     * Tracks and records an event with the specified value. good for measuring latencies or anything that needs
+     * running averages.
+     *
+     * @param {string} eventType - The type of the event being tracked.
+     * @param {string} eventCategory - The category of the event.
+     * @param {string} subCategory - The subcategory of the event.
+     * @param {number} [eventValue=0] - The value associated with the event. Defaults to 0 if not provided.
+     * @param {number} [count=1] - The number of times the event occurred. Defaults to 1 if not provided.
+     * @return {*} The result of the event tracking operation.
+     */
+    function valueEvent(eventType, eventCategory, subCategory, eventValue = 0, count = 1) {
+        return event(eventType, eventCategory, subCategory, count, eventValue);
     }
 
     // Init Analytics
@@ -390,4 +420,6 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
 
     // Public API
     analytics.event = event;
+    analytics.countEvent = countEvent;
+    analytics.valueEvent = valueEvent;
 }
