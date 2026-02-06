@@ -241,4 +241,9 @@ describe('core-analytics-client-lib main tests', function () {
         const event = analytics._getCurrentAnalyticsEvent();
         chai.expect(event.events).to.eql({});
     });
+
+    it('should expose deprecated event() for backwards compatibility', function () {
+        initAnalyticsSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", undefined, undefined, true);
+        chai.expect(analytics.event).to.be.a("function");
+    });
 });

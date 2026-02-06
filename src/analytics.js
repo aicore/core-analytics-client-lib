@@ -435,6 +435,8 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
     analytics._getAppConfig = _getAppConfig;
 
     // Public API
+    /** @deprecated Use {@link countEvent} or {@link valueEvent} instead. */
+    analytics.event = event;
     analytics.countEvent = countEvent;
     analytics.valueEvent = valueEvent;
 }
