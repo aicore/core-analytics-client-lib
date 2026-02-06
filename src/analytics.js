@@ -363,28 +363,44 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
     }
 
     /**
-     * Counts the occurrence of a specific event and logs its details.
+     * Counts the occurrence of a specific event. Use this to track how many times something happens.
+     * Events are aggregated and periodically sent to the analytics server.
      *
-     * @param {string} eventType - The type of the event to be counted.
-     * @param {string} eventCategory - The primary category of the event.
-     * @param {string} subCategory - The subcategory of the event.
-     * @param {number} [eventCount=1] - The number of occurrences to count. Defaults to 1 if not provided.
-     * @return {*} The result of the event logging function.
+     * @example
+     * // Count a single occurrence of a button click
+     * analytics.countEvent("ui", "button", "save");
+     *
+     * // Count multiple occurrences at once (e.g., 5 items were deleted in a batch)
+     * analytics.countEvent("action", "delete", "files", 5);
+     *
+     * @param {string} eventType - The type of the event (e.g., "ui", "action", "lifecycle").
+     * @param {string} eventCategory - The category of the event (e.g., "button", "menu", "startup").
+     * @param {string} subCategory - The subcategory of the event (e.g., "save", "open", "click").
+     * @param {number} [eventCount=1] - The number of occurrences to count. Must be a non-negative number.
      */
     function countEvent(eventType, eventCategory, subCategory, eventCount = 1) {
         return event(eventType, eventCategory, subCategory, eventCount, 0);
     }
 
     /**
-     * Tracks and records an event with the specified value. good for measuring latencies or anything that needs
-     * running averages.
+     * Tracks an event with an associated numeric value. Use this to measure quantities like latencies,
+     * durations, sizes, or anything where you need running averages and distributions.
      *
-     * @param {string} eventType - The type of the event being tracked.
-     * @param {string} eventCategory - The category of the event.
-     * @param {string} subCategory - The subcategory of the event.
-     * @param {number} [eventValue=0] - The value associated with the event. Defaults to 0 if not provided.
-     * @param {number} [count=1] - The number of times the event occurred. Defaults to 1 if not provided.
-     * @return {*} The result of the event tracking operation.
+     * @example
+     * // Track an API response time of 250ms
+     * analytics.valueEvent("performance", "api", "getUserData", 250);
+     *
+     * // Track a file size of 1024 bytes
+     * analytics.valueEvent("resource", "file", "upload", 1024);
+     *
+     * // Track that a 300ms latency occurred 10 times (e.g., from a pre-aggregated batch)
+     * analytics.valueEvent("performance", "api", "listItems", 300, 10);
+     *
+     * @param {string} eventType - The type of the event (e.g., "performance", "resource", "usage").
+     * @param {string} eventCategory - The category of the event (e.g., "api", "file", "memory").
+     * @param {string} subCategory - The subcategory of the event (e.g., "upload", "render", "query").
+     * @param {number} [eventValue=0] - The numeric value to associate with the event.
+     * @param {number} [count=1] - The number of times this value occurred. Must be a non-negative number.
      */
     function valueEvent(eventType, eventCategory, subCategory, eventValue = 0, count = 1) {
         return event(eventType, eventCategory, subCategory, count, eventValue);
@@ -419,7 +435,6 @@ function initAnalyticsSession(accountIDInit, appNameInit, analyticsURLInit,
     analytics._getAppConfig = _getAppConfig;
 
     // Public API
-    analytics.event = event;
     analytics.countEvent = countEvent;
     analytics.valueEvent = valueEvent;
 }

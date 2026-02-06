@@ -56,21 +56,26 @@ describe('core-analytics-client-lib main tests', function () {
         _validateCurrentEvent(event);
     });
 
-    it('should fail analyticsEvent on invalid arguments', function () {
+    it('should fail countEvent on invalid arguments', function () {
         initAnalyticsSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", undefined, undefined, true);
-        chai.expect(analytics.event).to.throw();
-        chai.expect(()=>analytics.event('ev1', 'cat1', 'sub1', -1)).to.throw();
-        chai.expect(()=>analytics.event('ev1', 'cat1', 'sub1', "10")).to.throw();
-        chai.expect(()=>analytics.event('ev1', 'cat1', 'sub1', 1, "1"))
+        chai.expect(analytics.countEvent).to.throw();
+        chai.expect(()=>analytics.countEvent('ev1', 'cat1', 'sub1', -1)).to.throw();
+        chai.expect(()=>analytics.countEvent('ev1', 'cat1', 'sub1', "10")).to.throw();
+    });
+
+    it('should fail valueEvent on invalid arguments', function () {
+        initAnalyticsSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", undefined, undefined, true);
+        chai.expect(analytics.valueEvent).to.throw();
+        chai.expect(()=>analytics.valueEvent('ev1', 'cat1', 'sub1', "1"))
             .to.throw();
     });
 
-    it('should analyticsEvent api succeed', async function () {
+    it('should countEvent api succeed', async function () {
         initAnalyticsSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", 10, .1, true);
-        analytics.event('ev1', 'cat1', 'sub1');
-        analytics.event('ev1', 'cat2', 'sub1', 5);
+        analytics.countEvent('ev1', 'cat1', 'sub1');
+        analytics.countEvent('ev1', 'cat2', 'sub1', 5);
         await sleep(250);
-        analytics.event('ev1', 'cat2', 'sub1', 2);
+        analytics.countEvent('ev1', 'cat2', 'sub1', 2);
         const event = analytics._getCurrentAnalyticsEvent();
         _validateCurrentEvent(event, 3, {
             "ev1": {
@@ -90,14 +95,14 @@ describe('core-analytics-client-lib main tests', function () {
         }, .1);
     });
 
-    it('should analyticsEvent api succeed if count and value is given subsequently', async function () {
+    it('should countEvent and valueEvent api succeed if count and value is given subsequently', async function () {
         initAnalyticsSession("unitTestAcc1", "core-analytics-client-lib", "https://lols", 10, .1, true);
-        analytics.event('ev1', 'cat1', 'sub1');
-        analytics.event('ev1', 'cat2', 'sub1', 5);
-        analytics.event('ev1', 'cat2', 'sub1', 5, 1);
-        analytics.event('ev1', 'cat2', 'sub1', 2, 1);
+        analytics.countEvent('ev1', 'cat1', 'sub1');
+        analytics.countEvent('ev1', 'cat2', 'sub1', 5);
+        analytics.valueEvent('ev1', 'cat2', 'sub1', 1, 5);
+        analytics.valueEvent('ev1', 'cat2', 'sub1', 1, 2);
         await sleep(250);
-        analytics.event('ev1', 'cat2', 'sub1', 2);
+        analytics.countEvent('ev1', 'cat2', 'sub1', 2);
         const event = analytics._getCurrentAnalyticsEvent();
         _validateCurrentEvent(event, 5, {
             "ev1": {
@@ -229,8 +234,8 @@ describe('core-analytics-client-lib main tests', function () {
         };
         initAnalyticsSession("unitTestAcc2", "core-analytics-client-lib", undefined, 10, .1, true);
         await sleep(200);
-        analytics.event('ev1', 'cat1', 'sub1');
-        analytics.event('ev1', 'cat2', 'sub1', 5);
+        analytics.countEvent('ev1', 'cat1', 'sub1');
+        analytics.countEvent('ev1', 'cat2', 'sub1', 5);
         let appConfig = analytics._getAppConfig();
         chai.expect(appConfig.disabled).to.eql(true);
         const event = analytics._getCurrentAnalyticsEvent();
